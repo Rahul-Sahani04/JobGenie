@@ -143,6 +143,7 @@ const ProfilePage: React.FC = () => {
                     )}
                     
                     <div className="mt-4 pt-2">
+                      <Link to="/jobs" className="text-primary-600 text-sm font-medium hover:text-primary-700">
                       <Button
                         as="a"
                         href="/jobs"
@@ -150,6 +151,7 @@ const ProfilePage: React.FC = () => {
                       >
                         Find Jobs
                       </Button>
+                      </Link>
                     </div>
                   </Card>
                 </div>

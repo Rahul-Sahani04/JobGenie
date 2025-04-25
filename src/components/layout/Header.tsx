@@ -38,7 +38,7 @@ const Header: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2 hover:!cursor-pointer">
             <BriefcaseBusiness size={28} className="text-primary-600" />
             <span className="text-xl font-bold text-gray-800">JobGenie</span>
           </Link>
@@ -47,7 +47,7 @@ const Header: React.FC = () => {
           <nav className="hidden md:flex items-center space-x-8">
             <Link
               to="/jobs"
-              className={`font-medium transition-colors hover:text-primary-600 ${
+              className={`font-medium transition-colors hover:text-primary-600 hover:!cursor-pointer ${
                 location.pathname === '/jobs' ? 'text-primary-600' : 'text-gray-700'
               }`}
             >
@@ -58,25 +58,26 @@ const Header: React.FC = () => {
               <>
                 <Link
                   to="/profile"
-                  className={`font-medium transition-colors hover:text-primary-600 ${
+                  className={`font-medium transition-colors hover:text-primary-600 hover:!cursor-pointer
+                    ${
                     location.pathname === '/profile' ? 'text-primary-600' : 'text-gray-700'
                   }`}
                 >
                   My Profile
                 </Link>
                 
-                <Button variant="outline" onClick={logout}>
+                <Button variant="outline" onClick={logout} className='hover:!cursor-pointer'>
                   Sign Out
                 </Button>
               </>
             ) : (
               <>
                 <Link to="/login">
-                  <Button variant="outline">Sign In</Button>
+                  <Button variant="outline" className='hover:!cursor-pointer'>Sign In</Button>
                 </Link>
                 
                 <Link to="/register">
-                  <Button variant="primary">Sign Up</Button>
+                  <Button variant="primary" className='!text-black hover:!cursor-pointer'>Sign Up</Button>
                 </Link>
               </>
             )}

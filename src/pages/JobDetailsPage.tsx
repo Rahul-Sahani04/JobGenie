@@ -8,6 +8,7 @@ import Button from '../components/common/Button';
 import { useJobDetails } from '../hooks/useJobs';
 import { formatDistanceToNow } from '../utils/helpers';
 import { useAuth } from '../context/AuthContext';
+import { saveJob, removeSavedJob } from '../services/jobs';
 
 const JobDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -15,6 +16,7 @@ const JobDetailsPage: React.FC = () => {
   const { user } = useAuth();
   
   const [isSaved, setIsSaved] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   
   // Check if job is saved
   useEffect(() => {
@@ -23,41 +25,47 @@ const JobDetailsPage: React.FC = () => {
     }
   }, [user, id]);
   
-  const handleSaveJob = () => {
-    // Toggle saved status
-    setIsSaved(!isSaved);
-    
-    // In a real app, call API to save/unsave the job
-    console.log(`${isSaved ? 'Unsaving' : 'Saving'} job: ${id}`);
+  const handleSaveJob = async () => {
+    if (!user) {
+      // Redirect to login if not authenticated
+      window.location.href = '/login';
+      return;
+    }
+
+    try {
+      setIsUpdating(true);
+      if (isSaved) {
+        await removeSavedJob(id!);
+      } else {
+        await saveJob(id!);
+      }
+      setIsSaved(!isSaved);
+    } catch (error) {
+      console.error('Error saving/unsaving job:', error);
+    } finally {
+      setIsUpdating(false);
+    }
   };
   
-  // Get "similar" jobs
-  const similarJobs = [
-    {
-      id: 'job-101',
-      title: 'Frontend Engineer',
-      company: 'WebTech Inc',
-      location: 'Remote',
-      jobType: 'Full-time',
-      postedDate: new Date(Date.now() - 3 * 86400000).toISOString(),
-    },
-    {
-      id: 'job-102',
-      title: 'UI/UX Designer',
-      company: 'Creative Studios',
-      location: 'New York',
-      jobType: 'Full-time',
-      postedDate: new Date(Date.now() - 2 * 86400000).toISOString(),
-    },
-    {
-      id: 'job-103',
-      title: 'JavaScript Developer',
-      company: 'SoftSolutions',
-      location: 'San Francisco',
-      jobType: 'Contract',
-      postedDate: new Date(Date.now() - 5 * 86400000).toISOString(),
-    },
-  ];
+  if (!job && !isLoading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 pt-24 pb-16">
+          <div className="bg-white rounded-lg shadow p-6 text-center">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Job Not Found</h2>
+            <p className="text-gray-600 mb-4">The job you're looking for doesn't exist or has been removed.</p>
+            <Link
+              to="/jobs"
+              className="inline-flex items-center text-primary-600 hover:text-primary-700"
+            >
+              <ChevronLeft size={16} className="mr-1" />
+              Back to job search
+            </Link>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
   
   return (
     <Layout>
@@ -88,82 +96,55 @@ const JobDetailsPage: React.FC = () => {
             {/* Sidebar */}
             <div>
               {/* Company Card */}
-              {!isLoading && job && (
+              {!isLoading && job && job.company_info && (
                 <Card className="mb-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">About the Company</h3>
                   
                   <div className="flex items-center mb-4">
-                    <div className="h-12 w-12 rounded-md bg-primary-100 flex items-center justify-center text-primary-700 mr-3">
-                      {job.company.charAt(0)}
+                    <div className="h-12 w-12 rounded-full border-2 border-black/40 bg-primary-100 flex items-center justify-center text-primary-700 mr-3 rounded-">
+                      {job.company_info.name[0].toUpperCase()}
                     </div>
                     <div>
-                      <h4 className="font-medium text-gray-900">{job.company}</h4>
-                      <a href="#" className="text-sm text-primary-600 hover:underline">
-                        View company profile
-                      </a>
+                      <h4 className="font-medium text-gray-900">{job.company_info.name}</h4>
+                      {job.company_info.website && (
+                        <a 
+                          href={job.company_info.website} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-sm text-primary-600 hover:underline"
+                        >
+                          Visit website
+                        </a>
+                      )}
                     </div>
                   </div>
                   
-                  <p className="text-gray-600 text-sm mb-4">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                  </p>
+                  {job.company_info.description && (
+                    <p className="text-gray-600 text-sm mb-4">
+                      {job.company_info.description}
+                    </p>
+                  )}
                   
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center text-gray-600">
                       <Building size={16} className="mr-2" />
-                      <span>50-200 employees</span>
+                      <span>Company Size: Not Specified</span>
                     </div>
                     <div className="flex items-center text-gray-600">
                       <MapPin size={16} className="mr-2" />
-                      <span>{job.location}</span>
+                      <span>{job.company_info.location}</span>
                     </div>
                   </div>
                 </Card>
               )}
               
               {/* Similar Jobs */}
-              <Card>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Similar Jobs</h3>
-                
-                <div className="space-y-4">
-                  {similarJobs.map((job) => (
-                    <Link to={`/jobs/${job.id}`} key={job.id}>
-                      <div className="border-b border-gray-100 pb-4">
-                        <h4 className="font-medium text-gray-900 hover:text-primary-600">{job.title}</h4>
-                        <p className="text-gray-600 text-sm">{job.company}</p>
-                        
-                        <div className="flex flex-wrap gap-2 mt-2 text-xs text-gray-500">
-                          <div className="flex items-center">
-                            <MapPin size={12} className="mr-1" />
-                            <span>{job.location}</span>
-                          </div>
-                          
-                          <div className="flex items-center">
-                            <Briefcase size={12} className="mr-1" />
-                            <span>{job.jobType}</span>
-                          </div>
-                          
-                          <div className="flex items-center">
-                            <Clock size={12} className="mr-1" />
-                            <span>{formatDistanceToNow(job.postedDate)}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-                
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <Button
-                    as="a"
-                    href="/jobs"
-                    variant="outline"
-                    fullWidth
-                  >
-                    View More Jobs
-                  </Button>
-                </div>
-              </Card>
+              {!isLoading && job && (
+                <Card>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Similar Jobs</h3>
+                  <p className="text-gray-600 text-sm">Similar jobs feature coming soon!</p>
+                </Card>
+              )}
             </div>
           </div>
         </div>

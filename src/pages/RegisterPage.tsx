@@ -7,6 +7,8 @@ const RegisterPage: React.FC = () => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const redirectTo = searchParams.get('redirect') || '/profile';
+
+
   
   return (
     <Layout hideFooter>

@@ -21,7 +21,9 @@ const JobCard: React.FC<JobCardProps> = ({ job, saved = false, onSave }) => {
               {job.title}
             </h3>
             
-            <p className="text-gray-700 mt-1">{job.company}</p>
+            <p className="text-gray-700 mt-1">
+              {job.company_info ? job.company_info.name : job.company}
+            </p>
             
             <div className="flex flex-wrap gap-3 mt-3">
               <div className="flex items-center text-gray-600 text-sm">

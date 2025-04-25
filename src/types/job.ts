@@ -1,7 +1,18 @@
+export interface Company {
+  id: string;
+  name: string;
+  description?: string;
+  logo_url?: string;
+  website?: string;
+  location: string;
+}
+
 export interface Job {
   id: string;
   title: string;
-  company: string;
+  company: string;  // This is company_id from backend
+  company_info?: Company;  // Full company info when available
+  company_name: string;
   location: string;
   description: string;
   responsibilities?: string[];

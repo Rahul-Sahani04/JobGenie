@@ -23,23 +23,23 @@ const HomePage: React.FC = () => {
   const featuredJobs = [
     {
       title: "Senior Frontend Developer",
-      company: "TechCorp",
-      location: "San Francisco",
-      salary: "$120k - $150k",
+      company: "TechCorp India",
+      location: "Bengaluru",
+      salary: "₹12L - ₹15L",
       logo: "https://ui-avatars.com/api/?name=TC&background=3B82F6&color=ffffff&size=60",
     },
     {
       title: "Product Manager",
-      company: "Innovate Inc",
-      location: "New York",
-      salary: "$110k - $140k",
+      company: "Innovate India",
+      location: "Mumbai",
+      salary: "₹11L - ₹14L",
       logo: "https://ui-avatars.com/api/?name=IN&background=14B8A6&color=ffffff&size=60",
     },
     {
       title: "Data Scientist",
-      company: "Global Solutions",
+      company: "Global Solutions India",
       location: "Remote",
-      salary: "$100k - $130k",
+      salary: "₹10L - ₹13L",
       logo: "https://ui-avatars.com/api/?name=GS&background=F97316&color=ffffff&size=60",
     },
   ];
@@ -281,9 +281,9 @@ const HomePage: React.FC = () => {
             JobGenie.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center ">
             <a href="/register">
-              <Button variant="secondary" size="lg">
+              <Button variant="secondary" size="lg" className="hover:!cursor-pointer !text-black !bg-gray-200 hover:!bg-gray-300">
                 Create an Account
               </Button>
             </a>
@@ -291,7 +291,7 @@ const HomePage: React.FC = () => {
               href="/jobs"
               className=" border-white hover:bg-white hover:text-primary-700"
             >
-              <Button variant="outline" size="lg">
+              <Button variant="outline" size="lg" className="hover:!cursor-pointer">
                 Browse Jobs
               </Button>
             </a>

@@ -50,7 +50,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{job.title}</h1>
-            <p className="text-lg text-gray-700 mt-1">{job.company}</p>
+            <p className="text-lg text-gray-700 mt-1">{job.company_info ? job.company_info.name : job.company}</p>
           </div>
           
           {onSaveJob && (
