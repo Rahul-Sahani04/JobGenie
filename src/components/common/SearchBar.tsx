@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Search } from 'lucide-react';
 import Button from './Button';
+import { useDebouncedCallback } from 'use-debounce';
 
 interface SearchBarProps {
   placeholder?: string;
   onSearch: (query: string) => void;
   initialValue?: string;
   className?: string;
+  debounceMs?: number;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
@@ -14,8 +16,28 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onSearch,
   initialValue = '',
   className = '',
+  debounceMs = 300,
 }) => {
   const [query, setQuery] = useState(initialValue);
+
+  const debouncedSearch = useDebouncedCallback(
+    (value: string) => {
+      onSearch(value);
+    },
+    debounceMs
+  );
+
+  useEffect(() => {
+    if (initialValue !== query) {
+      setQuery(initialValue);
+    }
+  }, [initialValue]);
+
+  const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setQuery(value);
+    debouncedSearch(value);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +52,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       <input
         type="text"
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={handleQueryChange}
         placeholder={placeholder}
         className="flex-grow px-4 py-3 text-gray-700 focus:outline-none"
       />

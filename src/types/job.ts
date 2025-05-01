@@ -17,11 +17,17 @@ export interface Job {
   description: string;
   responsibilities?: string[];
   qualifications?: string[];
-  salary?: string;
+  salary?: {
+    min: number;
+    max: number;
+    currency: string;
+  }
   jobType: JobType;
   experienceLevel: ExperienceLevel;
   postedDate: string;
   applicationUrl: string;
+  sourceUrl: string;
+  source: string;
   logo?: string;
   remote: boolean;
 }

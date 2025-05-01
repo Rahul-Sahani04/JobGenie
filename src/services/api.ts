@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Base API URL - we'll keep it hardcoded for now, but in production it should be in .env
-const API_URL = 'http://127.0.0.1:5000';
+const API_URL = 'http://localhost:5001/api';
 
 // Create an axios instance with default config
 const api = axios.create({

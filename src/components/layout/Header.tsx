@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Briefcase as BriefcaseBusiness, User } from 'lucide-react';
+import { Menu, Briefcase as BriefcaseBusiness, User } from 'lucide-react';
+import { Button } from '../ui/button';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../ui/sheet";
 import { useAuth } from '../../context/AuthContext';
-import Button from '../common/Button';
+import { cn } from '@/lib/utils';
 
 const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -31,25 +39,35 @@ const Header: React.FC = () => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-30 transition-all duration-300 ${
-        isScrolled || isMenuOpen ? 'bg-white shadow-md' : 'bg-transparent'
-      }`}
+      className={cn(
+        "fixed top-0 left-0 right-0 z-30",
+        "backdrop-blur-md transition-all duration-300",
+        isScrolled ? "bg-white/90 shadow-sm" : "bg-transparent",
+        "border-b border-gray-200",
+      )}
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 hover:!cursor-pointer">
-            <BriefcaseBusiness size={28} className="text-primary-600" />
-            <span className="text-xl font-bold text-gray-800">JobGenie</span>
+          <Link
+            to="/"
+            className="flex items-center space-x-2 transition-transform hover:scale-105"
+          >
+            <BriefcaseBusiness size={28} className="text-primary" />
+            <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              JobGenie
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-6">
             <Link
               to="/jobs"
-              className={`font-medium transition-colors hover:text-primary-600 hover:!cursor-pointer ${
-                location.pathname === '/jobs' ? 'text-primary-600' : 'text-gray-700'
-              }`}
+              className={cn(
+                "font-medium transition-all duration-200",
+                "hover:text-primary hover:underline hover:underline-offset-4",
+                location.pathname === '/jobs' ? 'text-primary' : 'text-gray-700'
+              )}
             >
               Browse Jobs
             </Link>
@@ -58,83 +76,103 @@ const Header: React.FC = () => {
               <>
                 <Link
                   to="/profile"
-                  className={`font-medium transition-colors hover:text-primary-600 hover:!cursor-pointer
-                    ${
-                    location.pathname === '/profile' ? 'text-primary-600' : 'text-gray-700'
-                  }`}
+                  className={cn(
+                    "font-medium transition-all duration-200",
+                    "hover:text-primary hover:underline hover:underline-offset-4",
+                    location.pathname === '/profile' ? 'text-primary' : 'text-gray-700'
+                  )}
                 >
-                  My Profile
+                  <div className="flex items-center space-x-2">
+                    <User size={18} />
+                    <span>My Profile</span>
+                  </div>
                 </Link>
                 
-                <Button variant="outline" onClick={logout} className='hover:!cursor-pointer'>
+                <Button
+                  variant="outline"
+                  onClick={logout}
+                  className="hover:bg-destructive/10"
+                >
                   Sign Out
                 </Button>
               </>
             ) : (
               <>
-                <Link to="/login">
-                  <Button variant="outline" className='hover:!cursor-pointer'>Sign In</Button>
-                </Link>
+                <Button asChild variant="ghost">
+                  <Link to="/login">Sign In</Link>
+                </Button>
                 
-                <Link to="/register">
-                  <Button variant="primary" className='!text-black hover:!cursor-pointer'>Sign Up</Button>
-                </Link>
+                <Button asChild>
+                  <Link to="/register">Sign Up</Link>
+                </Button>
               </>
             )}
           </nav>
 
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2 rounded-md text-gray-700 hover:bg-gray-100"
-            onClick={toggleMenu}
-            aria-label="Toggle menu"
-          >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          {/* Mobile Navigation */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[80%] sm:w-[385px]">
+              <SheetHeader>
+                <SheetTitle>
+                  <div className="flex items-center space-x-2">
+                    <BriefcaseBusiness size={24} className="text-primary" />
+                    <span className="text-xl font-bold">JobGenie</span>
+                  </div>
+                </SheetTitle>
+              </SheetHeader>
+              <div className="flex flex-col space-y-4 mt-8">
+                <Link
+                  to="/jobs"
+                  className={cn(
+                    "text-lg font-medium py-2 transition-colors",
+                    "hover:text-primary",
+                    location.pathname === '/jobs' && "text-primary"
+                  )}
+                >
+                  Browse Jobs
+                </Link>
+                
+                {isAuthenticated ? (
+                  <>
+                    <Link
+                      to="/profile"
+                      className={cn(
+                        "text-lg font-medium py-2 transition-colors",
+                        "hover:text-primary",
+                        location.pathname === '/profile' && "text-primary"
+                      )}
+                    >
+                      My Profile
+                    </Link>
+                    
+                    <Button
+                      variant="outline"
+                      onClick={logout}
+                      className="w-full mt-4"
+                    >
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <div className="flex flex-col space-y-3 mt-4">
+                    <Button asChild variant="outline">
+                      <Link to="/login" className="w-full">Sign In</Link>
+                    </Button>
+                    <Button asChild>
+                      <Link to="/register" className="w-full">Sign Up</Link>
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-200 shadow-lg">
-          <div className="container mx-auto px-4 py-4 space-y-4">
-            <Link
-              to="/jobs"
-              className="block py-2 font-medium hover:text-primary-600"
-            >
-              Browse Jobs
-            </Link>
-            
-            {isAuthenticated ? (
-              <>
-                <Link
-                  to="/profile"
-                  className="block py-2 font-medium hover:text-primary-600"
-                >
-                  My Profile
-                </Link>
-                
-                <button
-                  onClick={logout}
-                  className="block w-full py-2 font-medium text-left hover:text-primary-600"
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <div className="flex flex-col space-y-3 pt-2">
-                <Link to="/login">
-                  <Button variant="outline" fullWidth>Sign In</Button>
-                </Link>
-                
-                <Link to="/register">
-                  <Button variant="primary" fullWidth>Sign Up</Button>
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </header>
   );
 };

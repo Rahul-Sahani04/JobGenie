@@ -6,6 +6,8 @@
 
 # Testing
 /coverage
+/job-portal
+job-portal
 
 # Production
 /build

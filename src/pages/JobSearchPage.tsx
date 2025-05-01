@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Filter } from 'lucide-react';
 import Layout from '../components/layout/Layout';
@@ -23,8 +23,8 @@ const JobSearchPage: React.FC = () => {
   // State for filters drawer on mobile
   const [showFilters, setShowFilters] = useState(false);
   
-  // Initialize job search hook
-  const { jobs, totalJobs, currentPage, isLoading, error, fetchJobs, nextPage, prevPage } = useJobSearch({
+  // Initialize job search hook with initial URL params
+  const { jobs, totalJobs, currentPage, isLoading, error, updateSearch, nextPage, prevPage } = useJobSearch({
     query: queryParam,
     location: locationParam
   });
@@ -40,39 +40,40 @@ const JobSearchPage: React.FC = () => {
     remote: false
   });
   
+  // Update URL and trigger search
+  const updateUrlAndSearch = (params: Record<string, string | undefined>) => {
+    const urlParams = new URLSearchParams(location.search);
+    Object.entries(params).forEach(([key, value]) => {
+      if (value) {
+        urlParams.set(key, value);
+      } else {
+        urlParams.delete(key);
+      }
+    });
+    navigate({ search: urlParams.toString() }, { replace: true });
+  };
+  
   // Handle search submission
   const handleSearch = (query: string) => {
-    const params = new URLSearchParams(location.search);
-    if (query) {
-      params.set('query', query);
-    } else {
-      params.delete('query');
-    }
-    navigate({ search: params.toString() });
+    updateUrlAndSearch({ query });
     
-    fetchJobs({
+    updateSearch({
       query,
       location: locationParam,
-      jobTypes: activeFilters.jobTypes,
+      jobType: activeFilters.jobTypes[0],
       experienceLevel: activeFilters.experienceLevels[0],
       remote: activeFilters.remote
     });
   };
   
   // Handle location search
-  const handleLocationSearch = (location: string) => {
-    const params = new URLSearchParams(location.search);
-    if (location) {
-      params.set('location', location);
-    } else {
-      params.delete('location');
-    }
-    navigate({ search: params.toString() });
+  const handleLocationSearch = (locationValue: string) => {
+    updateUrlAndSearch({ location: locationValue });
     
-    fetchJobs({
+    updateSearch({
       query: queryParam,
-      location,
-      jobTypes: activeFilters.jobTypes,
+      location: locationValue,
+      jobType: activeFilters.jobTypes[0],
       experienceLevel: activeFilters.experienceLevels[0],
       remote: activeFilters.remote
     });
@@ -85,10 +86,10 @@ const JobSearchPage: React.FC = () => {
       ...filters
     });
     
-    fetchJobs({
+    updateSearch({
       query: queryParam,
       location: locationParam,
-      jobTypes: filters.jobTypes || [],
+      jobType: filters.jobTypes?.[0],
       experienceLevel: filters.experienceLevels?.[0],
       remote: filters.remote || false
     });
@@ -108,17 +109,6 @@ const JobSearchPage: React.FC = () => {
     console.log(`Toggling save state for job: ${jobId}`);
   };
   
-  useEffect(() => {
-    // Reset search when URL changes
-    fetchJobs({
-      query: queryParam,
-      location: locationParam,
-      jobTypes: activeFilters.jobTypes,
-      experienceLevel: activeFilters.experienceLevels[0],
-      remote: activeFilters.remote
-    });
-  }, [location.search]);
-  
   return (
     <Layout>
       <div className="bg-gray-50 min-h-screen pt-24 pb-16">
@@ -135,6 +125,7 @@ const JobSearchPage: React.FC = () => {
                 placeholder="Job title, keywords, or company"
                 onSearch={handleSearch}
                 initialValue={queryParam}
+                debounceMs={500}
               />
             </div>
             
@@ -143,6 +134,7 @@ const JobSearchPage: React.FC = () => {
                 placeholder="Location"
                 onSearch={handleLocationSearch}
                 initialValue={locationParam}
+                debounceMs={500}
               />
             </div>
             
@@ -228,7 +220,7 @@ const JobSearchPage: React.FC = () => {
                 <div className="mt-8 flex justify-center">
                   <div className="inline-flex rounded-md shadow-sm">
                     <button
-                      onClick={() => prevPage()}
+                      onClick={prevPage}
                       disabled={currentPage === 1}
                       className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none"
                     >
@@ -238,7 +230,7 @@ const JobSearchPage: React.FC = () => {
                       Page {currentPage}
                     </span>
                     <button
-                      onClick={() => nextPage()}
+                      onClick={nextPage}
                       disabled={currentPage * 10 >= totalJobs}
                       className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none"
                     >

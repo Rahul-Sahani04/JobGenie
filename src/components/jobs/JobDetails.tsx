@@ -1,9 +1,12 @@
 import React from 'react';
-import { MapPin, Calendar, Briefcase, Building, ExternalLink } from 'lucide-react';
-import Card from '../common/Card';
-import Button from '../common/Button';
+import { MapPin, Calendar, Briefcase, Building, ExternalLink, BookmarkPlus, CheckCircle2 } from 'lucide-react';
+import { Card, CardContent, CardFooter } from '../ui/card';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
+import { Skeleton } from '../ui/skeleton';
 import { Job } from '../../types/job';
 import { formatDate } from '../../utils/helpers';
+import { cn } from '@/lib/utils';
 
 interface JobDetailsProps {
   job: Job;
@@ -22,21 +25,39 @@ const JobDetails: React.FC<JobDetailsProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <div className="animate-pulse">
-        <div className="h-8 bg-gray-200 rounded mb-4 w-3/4"></div>
-        <div className="h-6 bg-gray-200 rounded mb-6 w-2/4"></div>
-        <div className="h-40 bg-gray-200 rounded mb-4"></div>
-        <div className="h-40 bg-gray-200 rounded mb-4"></div>
-      </div>
+      <Card className="w-full space-y-6">
+        <CardContent className="pt-6">
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-3/4" />
+              <Skeleton className="h-6 w-1/2" />
+              <div className="flex flex-wrap gap-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="h-6 w-24" />
+                ))}
+              </div>
+            </div>
+            <div className="space-y-4">
+              <Skeleton className="h-32" />
+              <Skeleton className="h-32" />
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Skeleton className="h-10 w-full" />
+        </CardFooter>
+      </Card>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-error-50 border border-error-200 rounded-md p-4 text-error-700">
-        <p className="font-medium">Error</p>
-        <p>{error}</p>
-      </div>
+      <Card className="border-destructive">
+        <CardContent className="pt-6 text-destructive space-y-2">
+          <h3 className="font-semibold text-lg">Error Loading Job Details</h3>
+          <p>{error}</p>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -45,93 +66,128 @@ const JobDetails: React.FC<JobDetailsProps> = ({
   }
 
   return (
-    <Card className="mb-8">
-      <div className="border-b border-gray-200 pb-5 mb-5">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{job.title}</h1>
-            <p className="text-lg text-gray-700 mt-1">{job.company_info ? job.company_info.name : job.company}</p>
+    <Card className="mb-8 overflow-hidden">
+      <CardContent className="pt-6 space-y-8">
+        {/* Header Section */}
+        <div className="space-y-6">
+          <div className="flex justify-between items-start gap-4">
+            <div className="space-y-2">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
+                {job.title}
+              </h1>
+              <p className="text-lg text-gray-700">
+                {job.company_info ? job.company_info.name : job.company}
+              </p>
+            </div>
+            
+            {onSaveJob && (
+              <Button
+                onClick={onSaveJob}
+                variant={isSaved ? "secondary" : "outline"}
+                size="sm"
+                className={cn(
+                  "transition-all duration-200",
+                  isSaved && "bg-primary/10 text-primary hover:bg-primary/20"
+                )}
+              >
+                {isSaved ? (
+                  <>
+                    <CheckCircle2 size={16} className="mr-1" />
+                    Saved
+                  </>
+                ) : (
+                  <>
+                    <BookmarkPlus size={16} className="mr-1" />
+                    Save Job
+                  </>
+                )}
+              </Button>
+            )}
           </div>
-          
-          {onSaveJob && (
-            <Button
-              onClick={onSaveJob}
-              variant={isSaved ? 'primary' : 'outline'}
-              leftIcon={isSaved ? '✓' : ''}
-            >
-              {isSaved ? 'Saved' : 'Save Job'}
-            </Button>
+
+          <div className="flex flex-wrap gap-3">
+            <Badge variant="outline" className="flex items-center gap-1.5">
+              <MapPin size={14} />
+              {job.remote ? 'Remote' : job.location}
+            </Badge>
+            
+            <Badge variant="outline" className="flex items-center gap-1.5">
+              <Briefcase size={14} />
+              {job.jobType}
+            </Badge>
+            
+            <Badge variant="outline" className="flex items-center gap-1.5">
+              <Building size={14} />
+              {job.experienceLevel}
+            </Badge>
+            
+            <Badge variant="outline" className="flex items-center gap-1.5">
+              <Calendar size={14} />
+              Posted {formatDate(job.postedDate)}
+            </Badge>
+          </div>
+
+          {job.salary && (
+            <Badge variant="secondary" className="text-sm px-3 py-1">
+              {job.salary}
+            </Badge>
           )}
         </div>
-        
-        <div className="mt-4 flex flex-wrap gap-4">
-          <div className="flex items-center text-gray-600">
-            <MapPin size={18} className="mr-1.5" />
-            <span>{job.remote ? 'Remote' : job.location}</span>
-          </div>
+
+        {/* Description Section */}
+        <div className="prose max-w-none space-y-6">
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Job Description</h2>
+            <div className="text-gray-700 whitespace-pre-line">{job.description}</div>
+          </section>
           
-          <div className="flex items-center text-gray-600">
-            <Briefcase size={18} className="mr-1.5" />
-            <span>{job.jobType}</span>
-          </div>
+          {job.responsibilities && job.responsibilities.length > 0 && (
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Responsibilities</h2>
+              <ul className="space-y-2 text-gray-700">
+                {job.responsibilities.map((responsibility, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="mr-2">•</span>
+                    {responsibility}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           
-          <div className="flex items-center text-gray-600">
-            <Building size={18} className="mr-1.5" />
-            <span>{job.experienceLevel}</span>
-          </div>
-          
-          <div className="flex items-center text-gray-600">
-            <Calendar size={18} className="mr-1.5" />
-            <span>Posted {formatDate(job.postedDate)}</span>
-          </div>
+          {job.qualifications && job.qualifications.length > 0 && (
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Qualifications</h2>
+              <ul className="space-y-2 text-gray-700">
+                {job.qualifications.map((qualification, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="mr-2">•</span>
+                    {qualification}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </div>
-        
-        {job.salary && (
-          <div className="mt-4 inline-block bg-primary-50 text-primary-700 px-3 py-1 rounded-md font-medium">
-            {job.salary}
-          </div>
-        )}
-      </div>
-      
-      <div className="prose max-w-none mb-6">
-        <h2 className="text-xl font-semibold mb-3">Job Description</h2>
-        <p className="whitespace-pre-line">{job.description}</p>
-      </div>
-      
-      {job.responsibilities && job.responsibilities.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-3">Responsibilities</h2>
-          <ul className="list-disc list-inside space-y-1 text-gray-700">
-            {job.responsibilities.map((responsibility, index) => (
-              <li key={index}>{responsibility}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-      
-      {job.qualifications && job.qualifications.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-3">Qualifications</h2>
-          <ul className="list-disc list-inside space-y-1 text-gray-700">
-            {job.qualifications.map((qualification, index) => (
-              <li key={index}>{qualification}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-      
-      <div className="pt-4 border-t border-gray-200">
-        <a href={job.applicationUrl} target="_blank" rel="noopener noreferrer">
-          <Button 
-            variant="primary" 
-            size="lg" 
-            fullWidth
-            rightIcon={<ExternalLink size={18} />}
+      </CardContent>
+
+      <CardFooter className="px-6 py-4 bg-gray-50">
+        <Button
+          asChild
+          size="lg"
+          className="w-full font-medium gap-2 bg-primary hover:bg-primary/90"
+        >
+          <a
+            href={job.applicationUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center"
           >
             Apply for this position
-          </Button>
-        </a>
-      </div>
+            <ExternalLink size={16} />
+          </a>
+        </Button>
+      </CardFooter>
     </Card>
   );
 };

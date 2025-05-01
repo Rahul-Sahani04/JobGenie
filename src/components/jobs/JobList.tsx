@@ -1,7 +1,11 @@
 import React from 'react';
+import { AlertCircle, FileSearch } from 'lucide-react';
+import { Card, CardContent } from '../ui/card';
+import { Skeleton } from '../ui/skeleton';
+import { Alert, AlertTitle, AlertDescription } from "../ui/alert";
 import JobCard from './JobCard';
-import LoadingState from '../common/LoadingState';
 import { Job } from '../../types/job';
+import { cn } from '@/lib/utils';
 
 interface JobListProps {
   jobs: Job[];
@@ -21,35 +25,70 @@ const JobList: React.FC<JobListProps> = ({
   emptyMessage = 'No jobs found. Try adjusting your search criteria.',
 }) => {
   if (isLoading) {
-    return <LoadingState text="Loading jobs..." />;
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <Card key={i} className="animate-in fade-in-50 duration-500" style={{ animationDelay: `${i * 100}ms` }}>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Skeleton className="h-6 w-2/3" />
+                  <Skeleton className="h-4 w-1/3" />
+                </div>
+                <div className="flex gap-2">
+                  {[1, 2, 3].map((j) => (
+                    <Skeleton key={j} className="h-5 w-20" />
+                  ))}
+                </div>
+                <Skeleton className="h-16" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className="bg-error-50 border border-error-200 rounded-md p-4 text-error-700">
-        <p className="font-medium">Error</p>
-        <p>{error}</p>
-      </div>
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error Loading Jobs</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
     );
   }
 
   if (jobs.length === 0) {
     return (
-      <div className="bg-gray-50 border border-gray-200 rounded-md p-6 text-center">
-        <p className="text-gray-600">{emptyMessage}</p>
-      </div>
+      <Card className="w-full">
+        <CardContent className="pt-6 flex flex-col items-center justify-center text-center space-y-4">
+          <FileSearch className="h-12 w-12 text-muted-foreground" />
+          <div className="space-y-2">
+            <h3 className="font-semibold text-lg">No Jobs Found</h3>
+            <p className="text-muted-foreground text-sm">{emptyMessage}</p>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
     <div className="space-y-4">
-      {jobs.map((job) => (
-        <JobCard
+      {jobs.map((job, index) => (
+        <div
           key={job.id}
-          job={job}
-          saved={savedJobs.includes(job.id)}
-          onSave={onSaveJob ? () => onSaveJob(job.id) : undefined}
-        />
+          className={cn(
+            "animate-in fade-in-50 duration-500 slide-in-from-bottom-4",
+          )}
+          style={{ animationDelay: `${index * 100}ms` }}
+        >
+          <JobCard
+            job={job}
+            saved={savedJobs.includes(job.id)}
+            onSave={onSaveJob ? () => onSaveJob(job.id) : undefined}
+          />
+        </div>
       ))}
     </div>
   );

@@ -1,0 +1,1 @@
+default_app_config = 'JobScraperV2_Api.apps.JobscraperConfig'

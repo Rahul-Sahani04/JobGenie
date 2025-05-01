@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getJobs, getJobById, getSavedJobs } from '../services/jobs';
 import { Job, JobSearchParams, JobsResponse } from '../types/job';
 
@@ -6,47 +6,89 @@ export const useJobSearch = (initialParams: JobSearchParams = {}) => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [totalJobs, setTotalJobs] = useState(0);
   const [currentPage, setCurrentPage] = useState(initialParams.page || 1);
-  const [params, setParams] = useState<JobSearchParams>(initialParams);
+  const [params, setParams] = useState<JobSearchParams>({
+    ...initialParams,
+    page: initialParams.page || 1,
+    limit: initialParams.limit || 10
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchJobs = async (searchParams: JobSearchParams = params) => {
+  const fetchJobs = useCallback(async (searchParams: JobSearchParams = params) => {
     try {
       setIsLoading(true);
       setError(null);
       
-      const response: JobsResponse = await getJobs(searchParams);
+      const finalParams = {
+        ...searchParams,
+        page: searchParams.page || 1,
+        limit: searchParams.limit || 10,
+        query: searchParams.query || undefined // Remove empty query
+      };
+
+      console.log('Fetching jobs with params:', finalParams);
+      
+      const response: JobsResponse = await getJobs(finalParams);
+      console.log('Got response:', { page: response.page, total: response.total });
       
       setJobs(response.jobs);
       setTotalJobs(response.total);
       setCurrentPage(response.page);
-      setParams(searchParams);
+      setParams(finalParams);
     } catch (err) {
       setError('Failed to fetch jobs. Please try again later.');
       console.error('Error fetching jobs:', err);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Initial fetch
-  useEffect(() => {
-    fetchJobs(initialParams);
   }, []);
 
-  const nextPage = () => {
-    if (currentPage * (params.limit || 10) < totalJobs) {
-      const newPage = currentPage + 1;
-      fetchJobs({ ...params, page: newPage });
-    }
-  };
+  // Only fetch jobs on initial mount with initialParams
+  useEffect(() => {
+    console.log('Initial fetch with params:', initialParams);
+    fetchJobs(initialParams);
+  }, []); // Empty dependency array
 
-  const prevPage = () => {
+  const updateSearch = useCallback((newParams: Partial<JobSearchParams>) => {
+    const updatedParams = {
+      ...params,
+      ...newParams,
+      page: newParams.query !== undefined ? 1 : (newParams.page || params.page)
+    };
+    console.log('Updating search with params:', updatedParams);
+    setParams(updatedParams);
+    fetchJobs(updatedParams);
+  }, [params, fetchJobs]);
+
+  const nextPage = useCallback(() => {
+    console.log('Current state:', { currentPage, totalJobs, limit: params.limit });
+    const newPage = currentPage + 1;
+    if (newPage * (params.limit || 10) <= totalJobs) {
+      console.log('Moving to next page:', newPage);
+      const updatedParams = { 
+        ...params,
+        page: newPage
+      };
+      setCurrentPage(newPage);
+      setParams(updatedParams);
+      fetchJobs(updatedParams);
+    }
+  }, [currentPage, params, totalJobs, fetchJobs]);
+
+  const prevPage = useCallback(() => {
+    console.log('Current state:', { currentPage, totalJobs, limit: params.limit });
     if (currentPage > 1) {
       const newPage = currentPage - 1;
-      fetchJobs({ ...params, page: newPage });
+      console.log('Moving to previous page:', newPage);
+      const updatedParams = { 
+        ...params,
+        page: newPage
+      };
+      setCurrentPage(newPage);
+      setParams(updatedParams);
+      fetchJobs(updatedParams);
     }
-  };
+  }, [currentPage, params, fetchJobs]);
 
   return {
     jobs,
@@ -54,7 +96,7 @@ export const useJobSearch = (initialParams: JobSearchParams = {}) => {
     currentPage,
     isLoading,
     error,
-    fetchJobs,
+    updateSearch,
     nextPage,
     prevPage,
   };

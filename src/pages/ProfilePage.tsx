@@ -1,40 +1,85 @@
-import React, { useState, useEffect } from 'react';
-import { Navigate, Link } from 'react-router-dom';
+import * as React from 'react';
+import { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import ProfileCard from '../components/user/ProfileCard';
-import Card from '../components/common/Card';
-import Button from '../components/common/Button';
-import JobList from '../components/jobs/JobList';
+import PreferencesSection from '../components/user/PreferencesSection';
+import { Card } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import ResumeBuilder from '../components/resume/ResumeBuilder';
+import ApplicationTracker from '../components/jobs/ApplicationTracker';
+import ProfileCompletion from '../components/user/ProfileCompletion';
 import LoadingState from '../components/common/LoadingState';
 import { useAuth } from '../context/AuthContext';
-import { useSavedJobs } from '../hooks/useJobs';
+import resumeService from '../services/resume';
+import { ApplicationStatus } from '../types/resume';
+import type { User } from '../types/auth';
 
-const ProfilePage: React.FC = () => {
+interface ProfileCompletionData {
+  percentage: number;
+  missingFields: string[];
+}
+
+type TabType = 'overview' | 'resume' | 'applications' | 'preferences';
+
+const ProfilePage = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
-  const { savedJobs, isLoading: isLoadingSavedJobs, error, refreshSavedJobs } = useSavedJobs();
-  
-  const [activeTab, setActiveTab] = useState<'overview' | 'saved' | 'applications'>('overview');
-  
-  // Handle job unsave
-  const handleUnsaveJob = (jobId: string) => {
-    // In a real app, call API to unsave the job
-    console.log(`Unsaving job: ${jobId}`);
-    refreshSavedJobs();
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [profileCompletion, setProfileCompletion] = useState<ProfileCompletionData>({
+    percentage: 0,
+    missingFields: []
+  });
+  const [applications, setApplications] = useState<ApplicationStatus[]>([]);
+  const [loadingApplications, setLoadingApplications] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      void loadApplications();
+      void loadProfileCompletion();
+    }
+  }, [user]);
+
+  const loadApplications = async (): Promise<void> => {
+    if (!user) return;
+    try {
+      const data = await resumeService.getApplications(user.id);
+      setApplications(data);
+    } catch (err) {
+      console.error('Failed to load applications:', err);
+    } finally {
+      setLoadingApplications(false);
+    }
   };
-  
-  // Redirect to login if not authenticated
+
+  const loadProfileCompletion = async (): Promise<void> => {
+    if (!user) return;
+    try {
+      const data = await resumeService.getProfileCompletion(user.id);
+      setProfileCompletion(data);
+    } catch (err) {
+      console.error('Failed to load profile completion:', err);
+    }
+  };
+
   if (isLoading) {
     return <LoadingState fullPage text="Loading profile..." />;
   }
-  
+
   if (!isLoading && !isAuthenticated) {
     return <Navigate to="/login?redirect=/profile" replace />;
   }
-  
+
   if (!user) {
     return null;
   }
-  
+
+  const tabs: Array<{ id: TabType; label: string }> = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'resume', label: 'Resume' },
+    { id: 'applications', label: 'Applications' },
+    { id: 'preferences', label: 'Preferences' },
+  ];
+
   return (
     <Layout>
       <div className="bg-gray-50 min-h-screen pt-24 pb-16">
@@ -42,148 +87,103 @@ const ProfilePage: React.FC = () => {
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
           </div>
-          
-          <div className="flex flex-col md:flex-row gap-8">
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Sidebar */}
-            <div className="md:w-1/3">
+            <div className="space-y-6">
               <ProfileCard user={user} onEdit={() => console.log('Edit profile')} />
+              <ProfileCompletion 
+                percentage={profileCompletion.percentage}
+                missingFields={profileCompletion.missingFields}
+              />
             </div>
-            
+
             {/* Main Content */}
-            <div className="md:w-2/3">
+            <div className="lg:col-span-2">
               {/* Tabs */}
-              <div className="bg-white rounded-md shadow-sm mb-6">
+              <Card className="mb-6">
                 <div className="flex border-b border-gray-200">
-                  <button
-                    className={`px-4 py-3 font-medium text-sm ${
-                      activeTab === 'overview'
-                        ? 'text-primary-600 border-b-2 border-primary-600'
-                        : 'text-gray-600 hover:text-gray-800'
-                    }`}
-                    onClick={() => setActiveTab('overview')}
-                  >
-                    Overview
-                  </button>
-                  
-                  <button
-                    className={`px-4 py-3 font-medium text-sm ${
-                      activeTab === 'saved'
-                        ? 'text-primary-600 border-b-2 border-primary-600'
-                        : 'text-gray-600 hover:text-gray-800'
-                    }`}
-                    onClick={() => setActiveTab('saved')}
-                  >
-                    Saved Jobs
-                  </button>
-                  
-                  <button
-                    className={`px-4 py-3 font-medium text-sm ${
-                      activeTab === 'applications'
-                        ? 'text-primary-600 border-b-2 border-primary-600'
-                        : 'text-gray-600 hover:text-gray-800'
-                    }`}
-                    onClick={() => setActiveTab('applications')}
-                  >
-                    Applications
-                  </button>
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      className={`px-4 py-3 font-medium text-sm ${
+                        activeTab === tab.id
+                          ? 'text-primary-600 border-b-2 border-primary-600'
+                          : 'text-gray-600 hover:text-gray-800'
+                      }`}
+                      onClick={() => setActiveTab(tab.id)}
+                      type="button"
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
                 </div>
-              </div>
-              
+              </Card>
+
               {/* Tab Content */}
-              {activeTab === 'overview' && (
-                <div className="space-y-6">
-                  {/* Activity Summary */}
-                  <Card>
-                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Activity Summary</h2>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="bg-gray-50 p-4 rounded-md">
-                        <p className="text-gray-600 text-sm">Saved Jobs</p>
-                        <p className="text-2xl font-bold text-gray-900">{user.savedJobs.length}</p>
+              <div>
+                {activeTab === 'overview' && (
+                  <div className="space-y-6">
+                    <Card className="p-6">
+                      <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Stats</h2>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-gray-50 p-4 rounded-md">
+                          <p className="text-gray-600 text-sm">Applications</p>
+                          <p className="text-2xl font-bold text-gray-900">{applications.length}</p>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-md">
+                          <p className="text-gray-600 text-sm">Profile Views</p>
+                          <p className="text-2xl font-bold text-gray-900">12</p>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-md">
+                          <p className="text-gray-600 text-sm">Profile Completion</p>
+                          <p className="text-2xl font-bold text-gray-900">{profileCompletion.percentage}%</p>
+                        </div>
                       </div>
-                      
-                      <div className="bg-gray-50 p-4 rounded-md">
-                        <p className="text-gray-600 text-sm">Applications</p>
-                        <p className="text-2xl font-bold text-gray-900">0</p>
-                      </div>
-                      
-                      <div className="bg-gray-50 p-4 rounded-md">
-                        <p className="text-gray-600 text-sm">Profile Views</p>
-                        <p className="text-2xl font-bold text-gray-900">12</p>
-                      </div>
-                    </div>
-                  </Card>
-                  
-                  {/* Recent Activity */}
-                  <Card>
-                    <div className="flex justify-between items-center mb-4">
-                      <h2 className="text-xl font-semibold text-gray-900">Recent Jobs</h2>
-                      
-                      <Link to="/jobs" className="text-primary-600 text-sm font-medium hover:text-primary-700">
-                        Browse All
-                      </Link>
-                    </div>
-                    
-                    {savedJobs.length > 0 ? (
-                      <div className="space-y-4">
-                        {savedJobs.slice(0, 3).map((job) => (
-                          <Link
-                            key={job.id}
-                            to={`/jobs/${job.id}`}
-                            className="block border-b border-gray-100 pb-4 hover:bg-gray-50 -mx-5 px-5"
-                          >
-                            <h3 className="font-medium text-gray-900">{job.title}</h3>
-                            <p className="text-gray-600 text-sm">{job.company}</p>
-                            <p className="text-gray-500 text-xs mt-1">{job.location}</p>
-                          </Link>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-gray-600">No saved jobs yet. Start browsing!</p>
-                    )}
-                    
-                    <div className="mt-4 pt-2">
-                      <Link to="/jobs" className="text-primary-600 text-sm font-medium hover:text-primary-700">
-                      <Button
-                        as="a"
-                        href="/jobs"
-                        variant="outline"
-                      >
-                        Find Jobs
-                      </Button>
-                      </Link>
-                    </div>
-                  </Card>
-                </div>
-              )}
-              
-              {activeTab === 'saved' && (
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Saved Jobs</h2>
-                  
-                  <JobList
-                    jobs={savedJobs}
-                    isLoading={isLoadingSavedJobs}
-                    error={error}
-                    savedJobs={user.savedJobs}
-                    onSaveJob={handleUnsaveJob}
-                    emptyMessage="You haven't saved any jobs yet."
-                  />
-                </div>
-              )}
-              
-              {activeTab === 'applications' && (
-                <Card>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Job Applications</h2>
-                  
-                  <div className="text-center py-8">
-                    <p className="text-gray-600 mb-4">You haven't applied to any jobs yet.</p>
-                    <Button as="a" href="/jobs" variant="primary">
-                      Browse Jobs
-                    </Button>
+                    </Card>
+
+                    <Card className="p-6">
+                      <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Applications</h2>
+                      <ApplicationTracker 
+                        applications={applications.slice(0, 3)}
+                        isLoading={loadingApplications}
+                      />
+                      {applications.length > 3 && (
+                        <Button
+                          variant="outline"
+                          className="mt-4"
+                          onClick={() => setActiveTab('applications')}
+                        >
+                          View All Applications
+                        </Button>
+                      )}
+                    </Card>
                   </div>
-                </Card>
-              )}
+                )}
+
+                {activeTab === 'resume' && (
+                  <ResumeBuilder onSave={loadProfileCompletion} />
+                )}
+
+                {activeTab === 'applications' && (
+                  <div className="space-y-6">
+                    <Card className="p-6">
+                      <h2 className="text-xl font-semibold text-gray-900 mb-4">Job Applications</h2>
+                      <ApplicationTracker 
+                        applications={applications}
+                        isLoading={loadingApplications}
+                      />
+                    </Card>
+                  </div>
+                )}
+
+                {activeTab === 'preferences' && (
+                  <PreferencesSection 
+                    userId={user.id} 
+                    onUpdate={loadProfileCompletion}
+                  />
+                )}
+              </div>
             </div>
           </div>
         </div>
