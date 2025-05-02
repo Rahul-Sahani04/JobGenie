@@ -106,16 +106,16 @@ JobGenie transforms the traditional job search process by leveraging AI and mode
 ## Screenshots
 
 <!-- Image -->
-![JobGenie HomePage](screenshots/HomePage.png)
+![JobGenie HomePage](https://github.com/Rahul-Sahani04/JobGenieFrontend/blob/master/screenshots/HomePage.png?raw=true)
 Home Page for JobGenie
 
-![Register Page](screenshots/RegisterPage.png)
+![Register Page](https://github.com/Rahul-Sahani04/JobGenieFrontend/blob/master/screenshots/RegisterPage.png?raw=true)
 User registration page
 
-![Login Page](screenshots/LoginPage.png)
+![Login Page](https://github.com/Rahul-Sahani04/JobGenieFrontend/blob/master/screenshots/LoginPage.png?raw=true)
 User login page
 
-![Browse Jobs](screenshots/BrowseJobs.png)
+![Browse Jobs](https://github.com/Rahul-Sahani04/JobGenieFrontend/blob/master/screenshots/BrowseJobs.png?raw=true)
 Advanced filtering and sorting capabilities
 
 

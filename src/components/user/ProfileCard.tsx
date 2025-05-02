@@ -1,8 +1,10 @@
-import React from 'react';
-import { User, MapPin, Edit } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { User, MapPin, Edit, Upload, Trash2, Eye } from 'lucide-react';
 import Card from '../common/Card';
 import Button from '../common/Button';
 import { User as UserType } from '../../types/auth';
+import { useAuth } from '../../context/AuthContext';
+import * as authService from '../../services/auth';
 
 interface ProfileCardProps {
   user: UserType;
@@ -10,6 +12,33 @@ interface ProfileCardProps {
 }
 
 const ProfileCard: React.FC<ProfileCardProps> = ({ user, onEdit }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { updateUser } = useAuth();
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleResumeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      const { resume } = await authService.uploadResume(file);
+      await updateUser({ resume });
+    } catch (error) {
+      console.error('Error uploading resume:', error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeleteResume = async () => {
+    try {
+      await updateUser({ resume: undefined });
+    } catch (error) {
+      console.error('Error deleting resume:', error);
+    }
+  };
+
   return (
     <Card className="relative">
       {onEdit && (
@@ -105,17 +134,45 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onEdit }) => {
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-medium text-gray-900">Resume</h3>
           
-          <Button variant="outline" size="sm">
+          <input
+            type="file"
+            id="resume-upload"
+            className="hidden"
+            accept=".pdf,.doc,.docx"
+            onChange={handleResumeUpload}
+            ref={fileInputRef}
+          />
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Upload size={16} className="mr-2" />
             {user.resume ? 'Update Resume' : 'Upload Resume'}
           </Button>
         </div>
         
         {user.resume ? (
           <div className="p-3 border border-gray-200 rounded-md flex justify-between items-center">
-            <span className="text-sm text-gray-600">resume.pdf</span>
+            <span className="text-sm text-gray-600">
+              {user.resume.split('/').pop() || 'resume.pdf'}
+            </span>
             <div className="flex space-x-2">
-              <button className="text-primary-600 text-sm hover:text-primary-700">View</button>
-              <button className="text-gray-600 text-sm hover:text-gray-700">Delete</button>
+              <button
+                onClick={() => window.open(user.resume, '_blank')}
+                className="text-primary-600 text-sm hover:text-primary-700 flex items-center"
+              >
+                <Eye size={16} className="mr-1" />
+                View
+              </button>
+              <button
+                onClick={handleDeleteResume}
+                className="text-error-600 text-sm hover:text-error-700 flex items-center"
+              >
+                <Trash2 size={16} className="mr-1" />
+                Delete
+              </button>
             </div>
           </div>
         ) : (
