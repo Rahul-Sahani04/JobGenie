@@ -74,10 +74,6 @@ const resumeSchema = new mongoose.Schema({
             proficiency: String
         }]
     },
-    fileUrls: {
-        pdf: String,
-        docx: String
-    },
     versions: [{
         versionNumber: Number,
         createdAt: {
@@ -86,10 +82,6 @@ const resumeSchema = new mongoose.Schema({
         },
         content: {
             type: mongoose.Schema.Types.Mixed
-        },
-        fileUrls: {
-            pdf: String,
-            docx: String
         },
         notes: String
     }],
@@ -116,7 +108,6 @@ resumeSchema.pre('save', function(next) {
         this.versions.push({
             versionNumber,
             content: this.content,
-            fileUrls: this.fileUrls,
             notes: 'Automatic version created on content update'
         });
     }

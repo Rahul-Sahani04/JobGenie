@@ -42,7 +42,6 @@ export interface Resume {
   education: Education[];
   experience: Experience[];
   skills: Skill[];
-  pdfUrl?: string;
   latexSource?: string;
   updatedAt: string;
 }
