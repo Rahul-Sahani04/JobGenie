@@ -15,6 +15,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ redirectTo = '/profile' }) 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [formError, setFormError] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const [showPassword, setShowPassword] = useState(false);
   const togglePasswordVisibility = () => {
@@ -28,6 +29,22 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ redirectTo = '/profile' }) 
   const { register, isLoading, error } = useAuth();
   const navigate = useNavigate();
 
+  const validateName = (name: string): boolean => {
+    const nameRegex = /^[a-zA-Z\s]{2,30}$/;
+    return nameRegex.test(name);
+  };
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password: string): boolean => {
+    // At least 8 characters, 1 uppercase, 1 lowercase, 1 number
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    return passwordRegex.test(password);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
@@ -36,9 +53,34 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ redirectTo = '/profile' }) 
       setFormError('Please fill in all fields');
       return;
     }
+
+    if (!validateName(firstName)) {
+      setFormError('First name should only contain letters and be at least 2 characters long');
+      return;
+    }
+
+    if (!validateName(lastName)) {
+      setFormError('Last name should only contain letters and be at least 2 characters long');
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setFormError('Please enter a valid email address');
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      setFormError('Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number');
+      return;
+    }
     
     if (password !== confirmPassword) {
       setFormError('Passwords do not match');
+      return;
+    }
+
+    if (!termsAccepted) {
+      setFormError('Please accept the Terms of Service and Privacy Policy');
       return;
     }
     
@@ -152,6 +194,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ redirectTo = '/profile' }) 
         <input
           id="terms"
           type="checkbox"
+          checked={termsAccepted}
+          onChange={(e) => setTermsAccepted(e.target.checked)}
           className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
         />
         <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">

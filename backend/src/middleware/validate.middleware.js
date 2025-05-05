@@ -5,6 +5,8 @@ const validate = validations => {
         // Run all validations
         await Promise.all(validations.map(validation => validation.run(req)));
 
+        console.log('Validating request:', req.body);
+
         const errors = validationResult(req);
         if (errors.isEmpty()) {
             return next();
@@ -18,6 +20,8 @@ const validate = validations => {
             acc[error.param].push(error.msg);
             return acc;
         }, {});
+
+        console.error('Validation errors:', formattedErrors);
 
         return res.status(400).json({
             message: 'Validation failed',

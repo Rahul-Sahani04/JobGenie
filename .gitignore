@@ -3,6 +3,7 @@
 /.pnp
 .pnp.js
 /bun.lockb
+/job-portal
 
 # Testing
 /coverage

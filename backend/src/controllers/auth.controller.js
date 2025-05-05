@@ -14,7 +14,18 @@ const generateToken = (id) => {
 // @access  Public
 const register = async (req, res) => {
     try {
-        const { email, password, name } = req.body;
+        const { email, password, firstName, lastName } = req.body;
+
+        const sanitizedEmail = email.trim().toLowerCase();
+        const sanitizedPassword = password.trim();
+
+        const sanitizedName = `${firstName.trim()} ${lastName.trim()}`;
+
+        console.log('Registering user:', {
+            email: sanitizedEmail,
+            name: sanitizedName,
+            password: sanitizedPassword 
+        });
 
         // Check if user exists
         const userExists = await User.findOne({ email });
@@ -24,9 +35,9 @@ const register = async (req, res) => {
 
         // Create user
         const user = await User.create({
-            name,
-            email,
-            password,
+            name: sanitizedName,
+            email: sanitizedEmail,
+            password: sanitizedPassword,
             profile: {
                 skills: [],
                 experienceYears: 0,

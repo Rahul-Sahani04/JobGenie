@@ -27,11 +27,9 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle specific error cases
+    // Let the auth context handle 401 errors
     if (error.response?.status === 401) {
-      // Handle unauthorized access (e.g., logout user)
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+      console.error('Authentication error:', error);
     }
     return Promise.reject(error);
   }

@@ -8,7 +8,8 @@ const router = express.Router();
 
 // Registration validation
 const registerValidation = [
-    check('name').trim().notEmpty().withMessage('Name is required'),
+    check('firstName').trim().notEmpty().withMessage('First name is required'),
+    check('lastName').trim().notEmpty().withMessage('Last name is required'),
     check('email').isEmail().withMessage('Please enter a valid email'),
     check('password')
         .isLength({ min: 6 })

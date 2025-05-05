@@ -35,7 +35,7 @@ const ProfilePage = () => {
   useEffect(() => {
     if (user) {
       void loadApplications();
-      void loadProfileCompletion();
+      // void loadProfileCompletion();
     }
   }, [user]);
 

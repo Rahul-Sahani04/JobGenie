@@ -106,7 +106,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, saved = false, onSave }) => {
                 <img 
                   src="https://static.naukimg.com/s/0/0/i/naukri-identity/naukri_gnb_logo.svg"
                   alt="Naukri Logo"
-                  className="h-6 w-6" 
+                  className="h-12 w-12" 
                   />
               </div>
             )}
@@ -115,7 +115,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, saved = false, onSave }) => {
                 <img 
                   src="https://www.shine.com/next/static/images/nova/logo.svg"
                   alt="Shine Logo"
-                  className="h-6 w-6" 
+                  className="h-12 w-12" 
                   />
               </div>
             )}

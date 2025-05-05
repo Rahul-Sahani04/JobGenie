@@ -21,12 +21,31 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectTo = '/profile' }) => {
   const { login, isLoading, error } = useAuth();
   const navigate = useNavigate();
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password: string): boolean => {
+    return password.length >= 6;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
     
     if (!email || !password) {
       setFormError('Please enter both email and password');
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setFormError('Please enter a valid email address');
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      setFormError('Password must be at least 6 characters long');
       return;
     }
     
