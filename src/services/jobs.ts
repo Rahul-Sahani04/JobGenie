@@ -33,7 +33,7 @@ export const getJobById = async (id: string): Promise<Job> => {
 
 export const saveJob = async (jobId: string): Promise<void> => {
   try {
-    await api.post('/user/saved-jobs', { jobId });
+    await api.post(`/jobs/${jobId}/save`);
   } catch (error) {
     console.error('Error saving job:', error);
     throw error;
@@ -42,7 +42,7 @@ export const saveJob = async (jobId: string): Promise<void> => {
 
 export const getSavedJobs = async (): Promise<Job[]> => {
   try {
-    const response = await api.get('/user/saved-jobs');
+    const response = await api.get('/jobs/saved/list');
     return response.data;
   } catch (error) {
     console.error('Error fetching saved jobs:', error);
@@ -50,11 +50,11 @@ export const getSavedJobs = async (): Promise<Job[]> => {
   }
 };
 
-export const removeSavedJob = async (jobId: string): Promise<void> => {
+export const unsaveJob = async (jobId: string): Promise<void> => {
   try {
-    await api.delete(`/user/saved-jobs/${jobId}`);
+    await api.delete(`/jobs/${jobId}/save`);
   } catch (error) {
-    console.error('Error removing saved job:', error);
+    console.error('Error unsaving job:', error);
     throw error;
   }
 };

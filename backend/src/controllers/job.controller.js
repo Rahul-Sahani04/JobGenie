@@ -1,4 +1,5 @@
 const Job = require('../models/job.model');
+const User = require('../models/user.model');
 const { validationResult } = require('express-validator');
 
 // Get all jobs with pagination and filters
@@ -121,5 +122,57 @@ exports.deleteJob = async (req, res) => {
     res.json({ message: 'Job deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting job', error: error.message });
+  }
+};
+
+// Save a job for the current user
+exports.saveJob = async (req, res) => {
+  try {
+    const jobId = req.params.id;
+    const userId = req.user._id;
+
+    // Check if job exists
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
+
+    // Update user's savedJobs
+    const user = await User.findById(userId);
+    if (!user.savedJobs.includes(jobId)) {
+      user.savedJobs.push(jobId);
+      await user.save();
+    }
+
+    res.json({ message: 'Job saved successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error saving job', error: error.message });
+  }
+};
+
+// Unsave a job for the current user
+exports.unsaveJob = async (req, res) => {
+  try {
+    const jobId = req.params.id;
+    const userId = req.user._id;
+
+    // Update user's savedJobs
+    const user = await User.findById(userId);
+    user.savedJobs = user.savedJobs.filter(id => id.toString() !== jobId);
+    await user.save();
+
+    res.json({ message: 'Job unsaved successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error unsaving job', error: error.message });
+  }
+};
+
+// Get saved jobs for the current user
+exports.getSavedJobs = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).populate('savedJobs');
+    res.json(user.savedJobs);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching saved jobs', error: error.message });
   }
 };

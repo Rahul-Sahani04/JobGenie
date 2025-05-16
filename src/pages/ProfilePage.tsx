@@ -4,6 +4,7 @@ import { Navigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import ProfileCard from '../components/user/ProfileCard';
 import PreferencesSection from '../components/user/PreferencesSection';
+import SavedJobs from '../components/jobs/SavedJobs';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import ResumeBuilder from '../components/resume/ResumeBuilder';
@@ -20,7 +21,7 @@ interface ProfileCompletionData {
   missingFields: string[];
 }
 
-type TabType = 'overview' | 'resume' | 'preferences';
+type TabType = 'overview' | 'resume' | 'preferences' | 'saved-jobs';
 
 const ProfilePage = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -77,6 +78,7 @@ const ProfilePage = () => {
     { id: 'overview', label: 'Overview' },
     { id: 'resume', label: 'Resume' },
     { id: 'preferences', label: 'Preferences' },
+    { id: 'saved-jobs', label: 'Saved Jobs' },
   ];
 
   return (
@@ -148,6 +150,10 @@ const ProfilePage = () => {
                     userId={user.id} 
                     onUpdate={loadProfileCompletion}
                   />
+                )}
+
+                {activeTab === 'saved-jobs' && (
+                  <SavedJobs />
                 )}
               </div>
             </div>

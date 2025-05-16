@@ -82,7 +82,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
             
             {onSaveJob && (
               <Button
-                onClick={onSaveJob}
+                onClick={() => onSaveJob(job._id)}
                 variant={isSaved ? "secondary" : "outline"}
                 size="sm"
                 className={cn(

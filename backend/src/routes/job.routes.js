@@ -36,4 +36,9 @@ router.post('/', protect, validateJob, checkValidation, jobController.createJob)
 router.put('/:id', protect, validateJob, checkValidation, jobController.updateJob);
 router.delete('/:id', protect, jobController.deleteJob);
 
+// Save/Unsave job routes
+router.post('/:id/save', protect, jobController.saveJob);
+router.delete('/:id/save', protect, jobController.unsaveJob);
+router.get('/saved/list', protect, jobController.getSavedJobs);
+
 module.exports = router;

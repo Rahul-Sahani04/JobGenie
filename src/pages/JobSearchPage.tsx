@@ -5,10 +5,12 @@ import Layout from '../components/layout/Layout';
 import SearchBar from '../components/common/SearchBar';
 import JobList from '../components/jobs/JobList';
 import JobFilters from '../components/jobs/JobFilters';
+import { saveJob, unsaveJob } from '../services/jobs';
 import Button from '../components/common/Button';
 import { useJobSearch } from '../hooks/useJobs';
 import { JobType, ExperienceLevel } from '../types/job';
 import { useAuth } from '../context/AuthContext';
+import { getSavedJobs } from '../services/jobs';
 
 const JobSearchPage: React.FC = () => {
   const location = useLocation();
@@ -19,15 +21,38 @@ const JobSearchPage: React.FC = () => {
   const searchParams = new URLSearchParams(location.search);
   const queryParam = searchParams.get('query') || '';
   const locationParam = searchParams.get('location') || '';
+
+  // State for managing job search
+  const [savedJobs, setSavedJobs] = useState<string[]>(user?.savedJobs || []);
+  const [loadingSavedJobs, setLoadingSavedJobs] = useState(true);
+
+  // Fetch saved jobs on component mount
+  React.useEffect(() => {
+    const fetchSavedJobs = async () => {
+      try {
+        const jobs = await getSavedJobs();
+        setSavedJobs(jobs.map(job => job._id));
+      } catch (error) {
+        console.error('Error fetching saved jobs:', error);
+      } finally {
+        setLoadingSavedJobs(false);
+      }
+    };
+
+    fetchSavedJobs();
+  }, [user]);
   
   // State for filters drawer on mobile
   const [showFilters, setShowFilters] = useState(false);
   
   // Initialize job search hook with initial URL params
-  const { jobs, totalJobs, currentPage, isLoading, error, updateSearch, nextPage, prevPage } = useJobSearch({
-    query: queryParam,
-    location: locationParam
-  });
+  const { jobs, totalJobs, currentPage, isLoading, error, updateSearch, nextPage, prevPage, setJobs } = useJobSearch(
+    {
+      query: queryParam,
+      location: locationParam
+    },
+    user?.savedJobs || []
+  );
   
   // Filter states
   const [activeFilters, setActiveFilters] = useState<{
@@ -79,34 +104,45 @@ const JobSearchPage: React.FC = () => {
     });
   };
   
-  // Apply filters
-  const handleApplyFilters = (filters: Partial<typeof activeFilters>) => {
-    setActiveFilters({
-      ...activeFilters,
-      ...filters
-    });
-    
-    updateSearch({
-      query: queryParam,
-      location: locationParam,
-      jobType: filters.jobTypes?.[0],
-      experienceLevel: filters.experienceLevels?.[0],
-      remote: filters.remote || false
-    });
-    
-    // Close mobile filters
-    setShowFilters(false);
-  };
-  
+
   // Handle job saving
-  const handleSaveJob = (jobId: string) => {
+  const handleSaveJob = async (jobId: string) => {
     if (!user) {
       navigate('/login?redirect=/jobs');
       return;
     }
-    
-    // Toggle saved state in a real app
-    console.log(`Toggling save state for job: ${jobId}`);
+
+    try {
+      const job = jobs.find(j => j._id === jobId);
+      console.log('Job to ' + (job?.isSaved ? 'unsave' : 'save') + ':', job);
+      if (!job) return;
+
+      const isSaved = job.isSaved || user.savedJobs?.includes(jobId);
+      
+      if (isSaved) {
+        await unsaveJob(jobId);
+        if (user.savedJobs) {
+          user.savedJobs = user.savedJobs.filter(_id => _id !== jobId);
+        }
+      } else {
+        await saveJob(jobId);
+        if (user.savedJobs) {
+          user.savedJobs.push(jobId);
+        } else {
+          user.savedJobs = [jobId];
+        }
+      }
+
+      // Update the isSaved state in the jobs list
+      setJobs(jobs.map(j => {
+        if (j._id === jobId) {
+          return { ...j, isSaved: !isSaved };
+        }
+        return j;
+      }));
+    } catch (error) {
+      console.error('Error saving/unsaving job:', error);
+    }
   };
   
   return (
@@ -137,52 +173,9 @@ const JobSearchPage: React.FC = () => {
                 debounceMs={500}
               />
             </div>
-            
-            <div className="md:hidden">
-              <Button
-                onClick={() => setShowFilters(!showFilters)}
-                variant="outline"
-                className="w-full"
-                leftIcon={<Filter size={16} />}
-              >
-                Filters
-              </Button>
-            </div>
           </div>
           
           <div className="flex flex-col md:flex-row gap-8">
-            {/* Filters - desktop */}
-            <div className="hidden md:block md:w-80 lg:w-96 flex-shrink-0">
-              <JobFilters
-                initialFilters={activeFilters}
-                onApplyFilters={handleApplyFilters}
-              />
-            </div>
-            
-            {/* Filters - mobile drawer */}
-            {showFilters && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden">
-                <div className="absolute right-0 top-0 h-full w-80 bg-white shadow-lg overflow-y-auto">
-                  <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-                    <h2 className="text-lg font-semibold">Filters</h2>
-                    <button
-                      onClick={() => setShowFilters(false)}
-                      className="text-gray-500 hover:text-gray-700"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  
-                  <div className="p-4">
-                    <JobFilters
-                      initialFilters={activeFilters}
-                      onApplyFilters={handleApplyFilters}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-            
             {/* Job Listings */}
             <div className="flex-grow">
               {/* Results info */}
@@ -193,15 +186,6 @@ const JobSearchPage: React.FC = () => {
                       {totalJobs === 0 ? 'No jobs found' : `Showing ${(currentPage - 1) * 10 + 1}-${Math.min(currentPage * 10, totalJobs)} of ${totalJobs} jobs`}
                     </p>
                     
-                    <div className="flex items-center">
-                      <span className="text-sm text-gray-600 mr-2">Sort by:</span>
-                      <select className="border border-gray-300 rounded p-1 text-sm">
-                        <option>Most relevant</option>
-                        <option>Newest</option>
-                        <option>Salary: high to low</option>
-                        <option>Salary: low to high</option>
-                      </select>
-                    </div>
                   </div>
                 </div>
               )}
@@ -211,7 +195,7 @@ const JobSearchPage: React.FC = () => {
                 jobs={jobs}
                 isLoading={isLoading}
                 error={error}
-                savedJobs={user?.savedJobs || []}
+                savedJobs={savedJobs || []}
                 onSaveJob={handleSaveJob}
               />
               

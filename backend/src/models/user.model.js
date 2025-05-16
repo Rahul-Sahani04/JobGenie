@@ -67,6 +67,15 @@ const userSchema = new mongoose.Schema({
     preferences: {
         jobTypes: [String],
         locations: [String],
+        currentLocation: {
+            type: String,
+            trim: true
+        },
+        preferredLocations: [String],
+        jobTitle: {
+            type: String,
+            trim: true
+        },
         experienceLevels: [String],
         remote: {
             type: Boolean,
@@ -78,7 +87,11 @@ const userSchema = new mongoose.Schema({
             type: String,
             default: 'INR'
         }
-    }
+    },
+    savedJobs: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Job'
+    }]
 }, {
     timestamps: true
 });

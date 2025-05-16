@@ -24,6 +24,8 @@ const JobList: React.FC<JobListProps> = ({
   onSaveJob,
   emptyMessage = 'No jobs found. Try adjusting your search criteria.',
 }) => {
+
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -77,7 +79,7 @@ const JobList: React.FC<JobListProps> = ({
     <div className="space-y-4">
       {jobs.map((job, index) => (
         <div
-          key={job.id}
+          key={job._id}
           className={cn(
             "animate-in fade-in-50 duration-500 slide-in-from-bottom-4",
           )}
@@ -85,8 +87,8 @@ const JobList: React.FC<JobListProps> = ({
         >
           <JobCard
             job={job}
-            saved={savedJobs.includes(job.id)}
-            onSave={onSaveJob ? () => onSaveJob(job.id) : undefined}
+            saved={savedJobs.includes(job._id)}
+            onSave={onSaveJob ? () => onSaveJob(job._id) : undefined}
           />
         </div>
       ))}

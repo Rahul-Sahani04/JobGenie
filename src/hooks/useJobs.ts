@@ -2,93 +2,76 @@ import { useState, useEffect, useCallback } from 'react';
 import { getJobs, getJobById, getSavedJobs } from '../services/jobs';
 import { Job, JobSearchParams, JobsResponse } from '../types/job';
 
-export const useJobSearch = (initialParams: JobSearchParams = {}) => {
+export const useJobSearch = (initialParams: JobSearchParams = {}, savedJobIds: string[] = []) => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [totalJobs, setTotalJobs] = useState(0);
   const [currentPage, setCurrentPage] = useState(initialParams.page || 1);
-  const [params, setParams] = useState<JobSearchParams>({
-    ...initialParams,
-    page: initialParams.page || 1,
-    limit: initialParams.limit || 10
-  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchJobs = useCallback(async (searchParams: JobSearchParams = params) => {
+  // Single function to fetch and update jobs
+  const fetchAndUpdateJobs = useCallback(async (searchParams: JobSearchParams) => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const finalParams = {
         ...searchParams,
         page: searchParams.page || 1,
         limit: searchParams.limit || 10,
-        query: searchParams.query || undefined // Remove empty query
+        query: searchParams.query || undefined
       };
 
-      console.log('Fetching jobs with params:', finalParams);
-      
-      const response: JobsResponse = await getJobs(finalParams);
-      console.log('Got response:', { page: response.page, total: response.total });
-      
-      setJobs(response.jobs);
+      const response = await getJobs(finalParams);
+      const updatedJobs = response.jobs.map(job => ({
+        ...job,
+        isSaved: savedJobIds.includes(job._id)
+      }));
+
+      setJobs(updatedJobs);
       setTotalJobs(response.total);
-      setCurrentPage(response.page);
-      setParams(finalParams);
+      setCurrentPage(finalParams.page);
     } catch (err) {
       setError('Failed to fetch jobs. Please try again later.');
       console.error('Error fetching jobs:', err);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [savedJobIds]);
 
-  // Only fetch jobs on initial mount with initialParams
+  // Initial fetch
   useEffect(() => {
-    console.log('Initial fetch with params:', initialParams);
-    fetchJobs(initialParams);
-  }, []); // Empty dependency array
+    fetchAndUpdateJobs(initialParams);
+  }, []); // Only run once on mount
+
+  // Update saved states when savedJobIds changes
+  useEffect(() => {
+    setJobs(currentJobs => currentJobs.map(job => ({
+      ...job,
+      isSaved: savedJobIds.includes(job._id)
+    })));
+  }, [savedJobIds]);
 
   const updateSearch = useCallback((newParams: Partial<JobSearchParams>) => {
-    const updatedParams = {
-      ...params,
+    const searchParams = {
+      ...initialParams,
       ...newParams,
-      page: newParams.query !== undefined ? 1 : (newParams.page || params.page)
+      page: newParams.query !== undefined ? 1 : (newParams.page || currentPage)
     };
-    console.log('Updating search with params:', updatedParams);
-    setParams(updatedParams);
-    fetchJobs(updatedParams);
-  }, [params, fetchJobs]);
+    fetchAndUpdateJobs(searchParams);
+  }, [fetchAndUpdateJobs, currentPage, initialParams]);
 
   const nextPage = useCallback(() => {
-    console.log('Current state:', { currentPage, totalJobs, limit: params.limit });
-    const newPage = currentPage + 1;
-    if (newPage * (params.limit || 10) <= totalJobs) {
-      console.log('Moving to next page:', newPage);
-      const updatedParams = { 
-        ...params,
-        page: newPage
-      };
-      setCurrentPage(newPage);
-      setParams(updatedParams);
-      fetchJobs(updatedParams);
+    if ((currentPage) * 10 <= totalJobs) {
+      fetchAndUpdateJobs({ ...initialParams, page: currentPage + 1 });
     }
-  }, [currentPage, params, totalJobs, fetchJobs]);
+  }, [currentPage, totalJobs, fetchAndUpdateJobs, initialParams]);
 
   const prevPage = useCallback(() => {
-    console.log('Current state:', { currentPage, totalJobs, limit: params.limit });
     if (currentPage > 1) {
-      const newPage = currentPage - 1;
-      console.log('Moving to previous page:', newPage);
-      const updatedParams = { 
-        ...params,
-        page: newPage
-      };
-      setCurrentPage(newPage);
-      setParams(updatedParams);
-      fetchJobs(updatedParams);
+      fetchAndUpdateJobs({ ...initialParams, page: currentPage - 1 });
     }
-  }, [currentPage, params, fetchJobs]);
+  }, [currentPage, fetchAndUpdateJobs, initialParams]);
 
   return {
     jobs,
@@ -99,6 +82,7 @@ export const useJobSearch = (initialParams: JobSearchParams = {}) => {
     updateSearch,
     nextPage,
     prevPage,
+    setJobs
   };
 };
 
@@ -126,7 +110,7 @@ export const useJobDetails = (jobId?: string) => {
     if (jobId) {
       fetchJob(jobId);
     }
-  }, [jobId]);
+  }, []);
 
   return { job, isLoading, error, fetchJob };
 };

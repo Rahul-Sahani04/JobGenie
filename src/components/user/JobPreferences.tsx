@@ -41,6 +41,36 @@ const JobPreferences: React.FC<JobPreferencesProps> = ({ preferences, onSave }) 
           </p>
         </div>
 
+        {/* Current Location */}
+        <div className="space-y-2">
+          <Label>Current Location</Label>
+          <Input
+            placeholder="Enter your current location"
+            value={currentPreferences.currentLocation || ''}
+            onChange={(e) => {
+              setCurrentPreferences({
+                ...currentPreferences,
+                currentLocation: e.target.value,
+              });
+            }}
+          />
+        </div>
+
+        {/* Job Title */}
+        <div className="space-y-2">
+          <Label>Job Title Looking For</Label>
+          <Input
+            placeholder="Enter the job title you're looking for"
+            value={currentPreferences.jobTitle || ''}
+            onChange={(e) => {
+              setCurrentPreferences({
+                ...currentPreferences,
+                jobTitle: e.target.value,
+              });
+            }}
+          />
+        </div>
+
         {/* Job Types */}
         <div className="space-y-2">
           <Label>Job Types</Label>

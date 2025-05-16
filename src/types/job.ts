@@ -8,7 +8,7 @@ export interface Company {
 }
 
 export interface Job {
-  id: string;
+  _id: string;
   title: string;
   company: string;  // This is company_id from backend
   company_info?: Company;  // Full company info when available
@@ -30,6 +30,7 @@ export interface Job {
   source: string;
   logo?: string;
   remote: boolean;
+  isSaved?: boolean;
 }
 
 export type JobType = 'Full-time' | 'Part-time' | 'Contract' | 'Internship' | 'Freelance';

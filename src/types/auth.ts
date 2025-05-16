@@ -32,7 +32,9 @@ export interface UserProfile {
 
 export interface UserPreferences {
   jobTypes: ('Full-time' | 'Part-time' | 'Contract' | 'Internship' | 'Freelance')[];
+  currentLocation?: string;
   locations: string[];
+  jobTitle?: string;
   experienceLevels: ('Entry level' | 'Mid level' | 'Senior level' | 'Executive')[];
   remote: boolean;
   salary?: {

@@ -8,7 +8,7 @@ import Button from '../components/common/Button';
 import { useJobDetails } from '../hooks/useJobs';
 import { formatDistanceToNow } from '../utils/helpers';
 import { useAuth } from '../context/AuthContext';
-import { saveJob, removeSavedJob } from '../services/jobs';
+import { saveJob, unsaveJob } from '../services/jobs';
 
 const JobDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -35,7 +35,7 @@ const JobDetailsPage: React.FC = () => {
     try {
       setIsUpdating(true);
       if (isSaved) {
-        await removeSavedJob(id!);
+        await unsaveJob(id!);
       } else {
         await saveJob(id!);
       }
