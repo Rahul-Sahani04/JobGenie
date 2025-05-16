@@ -1,0 +1,90 @@
+/* Common styles */
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  line-height: 1.6;
+}
+
+/* Classic template */
+.template-classic {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+}
+
+.template-classic .header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.template-classic .section {
+  margin-bottom: 2rem;
+}
+
+.template-classic .item {
+  margin-bottom: 1rem;
+}
+
+/* Modern template */
+.template-modern {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 3rem;
+  background: linear-gradient(to right, #f8f9fa 0%, white 100%);
+}
+
+.template-modern .header {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.template-modern h1, 
+.template-modern h2 {
+  color: #2563eb;
+}
+
+.template-modern .section {
+  margin-bottom: 3rem;
+}
+
+.template-modern .item {
+  border-left: 3px solid #2563eb;
+  padding-left: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Minimal template */
+.template-minimal {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.template-minimal .header {
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 1rem;
+  margin-bottom: 2rem;
+}
+
+.template-minimal h1 {
+  font-size: 2rem;
+  font-weight: 500;
+}
+
+.template-minimal h2 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+}
+
+.template-minimal .section {
+  margin-bottom: 2rem;
+}
+
+.template-minimal .item {
+  margin-bottom: 1.5rem;
+}

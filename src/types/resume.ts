@@ -92,6 +92,12 @@ export interface ResumeMetadata {
   customTags?: string[];
 }
 
+export enum ResumeTemplate {
+  CLASSIC = 'classic',
+  MODERN = 'modern',
+  MINIMAL = 'minimal'
+}
+
 export interface Resume {
   _id: string;
   id: string;
@@ -101,6 +107,7 @@ export interface Resume {
   content: ResumeContent;
   versions: ResumeVersion[];
   metadata: ResumeMetadata;
+  template?: ResumeTemplate;
   createdAt: string;
   updatedAt: string;
 }
@@ -113,4 +120,11 @@ export interface ApplicationStatus {
   appliedDate: string;
   originalJobUrl: string;
   notes?: string;
+}
+
+export interface TemplatePreview {
+  id: ResumeTemplate;
+  name: string;
+  description: string;
+  imageUrl: string;
 }

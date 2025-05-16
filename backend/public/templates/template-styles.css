@@ -1,0 +1,169 @@
+/* Reset and common styles */
+body {
+  margin: 0;
+  padding: 2rem;
+  font-family: system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  color: #333;
+}
+
+.section {
+  margin-bottom: 1.5rem;
+}
+
+.item {
+  margin-bottom: 1rem;
+}
+
+/* Classic template */
+.template-classic {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.template-classic .header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #333;
+}
+
+.template-classic h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.template-classic h2 {
+  font-size: 1.5rem;
+  color: #333;
+  border-bottom: 1px solid #333;
+  padding-bottom: 0.25rem;
+  margin: 1.5rem 0 1rem;
+}
+
+.template-classic .item-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+}
+
+.template-classic .contact-info p {
+  margin: 0.25rem 0;
+}
+
+/* Modern template */
+.template-modern {
+  max-width: 800px;
+  margin: 0 auto;
+  background: linear-gradient(to right, #f8f9fa 0%, white 100%);
+}
+
+.template-modern .header {
+  background: #2563eb;
+  color: white;
+  padding: 2rem;
+  margin: -2rem -2rem 2rem -2rem;
+  text-align: center;
+}
+
+.template-modern h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.template-modern h2 {
+  font-size: 1.5rem;
+  color: #2563eb;
+  margin: 2rem 0 1rem;
+}
+
+.template-modern .item {
+  border-left: 3px solid #2563eb;
+  padding-left: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.template-modern .item-header {
+  display: flex;
+  justify-content: space-between;
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.template-modern .contact-info {
+  margin-top: 1rem;
+}
+
+.template-modern .contact-info p {
+  margin: 0.25rem 0;
+}
+
+.template-modern .skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+/* Minimal template */
+.template-minimal {
+  max-width: 800px;
+  margin: 0 auto;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.template-minimal .header {
+  margin-bottom: 2rem;
+}
+
+.template-minimal h1 {
+  font-size: 2rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.template-minimal h2 {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+  margin: 2rem 0 1rem;
+  font-weight: 500;
+}
+
+.template-minimal .item {
+  margin-bottom: 1.5rem;
+}
+
+.template-minimal .item-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 500;
+}
+
+.template-minimal .contact-info {
+  color: #6b7280;
+}
+
+.template-minimal .contact-info p {
+  margin: 0.25rem 0;
+}
+
+.template-minimal .skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  color: #374151;
+}
+
+/* Print styles */
+@media print {
+  body {
+    padding: 0;
+    font-size: 12pt;
+  }
+
+  .template-modern .header {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

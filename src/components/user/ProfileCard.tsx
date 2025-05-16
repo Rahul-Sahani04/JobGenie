@@ -16,32 +16,34 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onEdit }) => {
   const { updateUser } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
 
-  const handleResumeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  // const handleResumeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = event.target.files?.[0];
+  //   if (!file) return;
 
-    try {
-      setIsUploading(true);
-      const { resume } = await authService.uploadResume(file);
-      await updateUser({ resume });
-    } catch (error) {
-      console.error('Error uploading resume:', error);
-    } finally {
-      setIsUploading(false);
-    }
-  };
+  //   try {
+  //     setIsUploading(true);
+  //     const { resume } = await authService.uploadResume(file);
+  //     await updateUser({ resume });
+  //   } catch (error) {
+  //     console.error('Error uploading resume:', error);
+  //   } finally {
+  //     setIsUploading(false);
+  //   }
+  // };
 
-  const handleDeleteResume = async () => {
-    try {
-      await updateUser({ resume: undefined });
-    } catch (error) {
-      console.error('Error deleting resume:', error);
-    }
-  };
+  // const handleDeleteResume = async () => {
+  //   try {
+  //     await updateUser({ resume: undefined });
+  //   } catch (error) {
+  //     console.error('Error deleting resume:', error);
+  //   }
+  // };
+
+  console.log('User:', user);
 
   return (
     <Card className="relative">
-      {onEdit && (
+      {/* {onEdit && (
         <button
           onClick={onEdit}
           className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600"
@@ -49,7 +51,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onEdit }) => {
         >
           <Edit size={18} />
         </button>
-      )}
+      )} */}
       
       <div className="flex flex-col items-center">
         <div className="h-24 w-24 rounded-full bg-primary-100 flex items-center justify-center mb-4">
@@ -57,7 +59,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onEdit }) => {
         </div>
         
         <h2 className="text-xl font-bold text-gray-900">
-          {user.firstName} {user.lastName}
+          {user.name}
         </h2>
         
         <p className="text-gray-600 mt-1">{user.email}</p>
@@ -130,7 +132,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onEdit }) => {
         </div>
       </div>
       
-      <div className="mt-6 pt-6 border-t border-gray-200">
+      {/* <div className="mt-6 pt-6 border-t border-gray-200">
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-medium text-gray-900">Resume</h3>
           
@@ -180,7 +182,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onEdit }) => {
             No resume uploaded yet. Add your resume to apply for jobs more quickly.
           </p>
         )}
-      </div>
+      </div> */}
     </Card>
   );
 };

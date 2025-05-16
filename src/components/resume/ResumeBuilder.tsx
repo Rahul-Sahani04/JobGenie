@@ -4,9 +4,10 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Separator } from '../ui/separator';
 import { Plus, Trash2, Download, FileText } from 'lucide-react';
-import { Resume, Education, WorkExperience, Skill } from '@/types/resume';
-import resumeService from '@/services/resume';
+import { Resume, Education, WorkExperience, Skill, ResumeTemplate } from '@/types/resume';
+import resumeService, { TEMPLATE_PREVIEWS } from '@/services/resume';
 import { useAuth } from '@/context/AuthContext';
+import TemplateSelector from './TemplateSelector';
 
 interface ResumeBuilderProps {
   onSave?: () => void;
@@ -17,6 +18,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onSave }) => {
   const [resume, setResume] = useState<Resume | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<ResumeTemplate>(ResumeTemplate.CLASSIC);
 
   useEffect(() => {
     if (user) {
@@ -31,6 +33,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onSave }) => {
       const data = await resumeService.getResume(user._id);
       console.log('Resume loaded:', data);
       setResume(data);
+      if (data.template) {
+        setSelectedTemplate(data.template);
+      }
     } catch (error) {
       console.error('Failed to load resume:', error);
     } finally {
@@ -201,6 +206,16 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onSave }) => {
     });
   };
 
+  const handleTemplateChange = async (template: ResumeTemplate) => {
+    if (!resume) return;
+    setSelectedTemplate(template);
+    try {
+      await resumeService.updateTemplate(resume._id, template);
+    } catch (error) {
+      console.error('Failed to update template:', error);
+    }
+  };
+
   const handleSave = async () => {
     if (!resume) return;
     try {
@@ -217,7 +232,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onSave }) => {
     try {
       setGenerating(true);
       console.log('Generating LaTeX resume for ID:', resume);
-      const { latexSource, pdfUrl } = await resumeService.generateLatexResume(resume._id);
+      const { latexSource, pdfUrl } = await resumeService.generateLatexResume(resume._id, selectedTemplate);
       console.log('LaTeX source:', latexSource);
       console.log('PDF URL:', pdfUrl);
       window.open(pdfUrl, '_blank');
@@ -430,6 +445,16 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onSave }) => {
             </div>
           ))}
         </div>
+      </Card>
+
+      {/* Template Selection */}
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Choose Template</h3>
+        <TemplateSelector
+          templates={TEMPLATE_PREVIEWS}
+          selectedTemplate={selectedTemplate}
+          onSelectTemplate={handleTemplateChange}
+        />
       </Card>
 
       {/* Actions */}

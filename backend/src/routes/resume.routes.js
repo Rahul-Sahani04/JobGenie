@@ -1,15 +1,21 @@
 const express = require('express');
-const { getResumeByUserId, updateResume, generateLatexResume } = require('../controllers/resume.controller');
-const auth = require('../middleware/auth.middleware');
+const {
+  getResumeByUserId,
+  updateResume,
+  generateLatexResume,
+  updateTemplate,
+} = require('../controllers/resume.controller');
+const { protect } = require('../middleware/auth.middleware');
+
 const router = express.Router();
 
-// Get resume by user ID
+// Apply auth middleware to all routes
+router.use(protect);
+
+// Resume routes
 router.get('/:userId', getResumeByUserId);
-
-// Update resume
 router.put('/:resumeId', updateResume);
-
-// Generate LaTeX resume
+router.put('/:resumeId/template', updateTemplate);
 router.post('/:resumeId/latex', generateLatexResume);
 
 module.exports = router;

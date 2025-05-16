@@ -4,6 +4,7 @@ import ResumeBuilder from '@/components/resume/ResumeBuilder';
 import LatexEditor from '@/components/resume/LatexEditor';
 import resumeService from '@/services/resume';
 import { useAuth } from '@/context/AuthContext';
+import Layout from '../components/layout/Layout';
 
 const LatexResumePage: React.FC = () => {
   const { user } = useAuth();
@@ -45,10 +46,13 @@ const LatexResumePage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto py-6">
-      <h1 className="text-3xl font-bold mb-6">LaTeX Resume Builder</h1>
+    <Layout >
+    <div className="container mx-auto py-6 ">
+      <h1 className="text-3xl font-bold mb-6 ">LaTeX Resume Builder</h1>
+
+      <ResumeBuilder onSave={handleResumeUpdate} />
       
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      {/* <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full border-b mb-6">
           <TabsTrigger value="builder" className="flex-1">
             Resume Builder
@@ -59,7 +63,7 @@ const LatexResumePage: React.FC = () => {
         </TabsList>
 
         <TabsContent value="builder" className="mt-6">
-          <ResumeBuilder onSave={handleResumeUpdate} />
+          
         </TabsContent>
 
         <TabsContent value="latex" className="mt-6">
@@ -70,8 +74,9 @@ const LatexResumePage: React.FC = () => {
             generating={generating}
           />
         </TabsContent>
-      </Tabs>
+      </Tabs> */}
     </div>
+    </Layout>
   );
 };
 

@@ -1,7 +1,28 @@
 import api from './api';
-import { Resume, ApplicationStatus } from '@/types/resume';
+import { Resume, ApplicationStatus, ResumeTemplate, TemplatePreview } from '@/types/resume';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+
+export const TEMPLATE_PREVIEWS: TemplatePreview[] = [
+  {
+    id: ResumeTemplate.CLASSIC,
+    name: 'Classic',
+    description: 'A traditional resume layout with a clean and professional look',
+    imageUrl: '/templates/classic-preview.png'
+  },
+  {
+    id: ResumeTemplate.MODERN,
+    name: 'Modern',
+    description: 'A contemporary design with a fresh and dynamic feel',
+    imageUrl: '/templates/modern-preview.png'
+  },
+  {
+    id: ResumeTemplate.MINIMAL,
+    name: 'Minimal',
+    description: 'A sleek and minimalist design that focuses on content',
+    imageUrl: '/templates/minimal-preview.png'
+  }
+];
 
 const resumeService = {
   // Resume CRUD operations
@@ -73,18 +94,29 @@ const resumeService = {
     return response.data;
   },
 
+  // Template management
+  updateTemplate: async (resumeId: string, template: ResumeTemplate): Promise<Resume> => {
+    const response = await api.put(`/resumes/${resumeId}/template`, { template });
+    return response.data;
+  },
+
   // LaTeX Resume Generation
-  generateLatexResume: async (resumeId: string): Promise<{
+  generateLatexResume: async (resumeId: string, template: ResumeTemplate = ResumeTemplate.CLASSIC): Promise<{
     latexSource: string;
     pdfUrl: string;
   }> => {
-    const response = await api.post(`/resumes/${resumeId}/latex/`);
+    const response = await api.post(`/resumes/${resumeId}/latex/`, { template });
     // Modify the pdfUrl to use the backend URL
     const pdfUrl = `${API_BASE_URL}${response.data.pdfUrl}`;
     return {
       ...response.data,
       pdfUrl,
     };
+  },
+
+  // Get template previews
+  getTemplatePreviews: (): TemplatePreview[] => {
+    return TEMPLATE_PREVIEWS;
   }
 };
 
