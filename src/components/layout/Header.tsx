@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, Briefcase as BriefcaseBusiness, User } from 'lucide-react';
+import { Menu, Briefcase as BriefcaseBusiness, User, FileText } from 'lucide-react';
 import { Button } from '../ui/button';
 import {
   Sheet,
@@ -75,6 +75,20 @@ const Header: React.FC = () => {
             {isAuthenticated ? (
               <>
                 <Link
+                  to="/resume/latex"
+                  className={cn(
+                    "font-medium transition-all duration-200",
+                    "hover:text-primary hover:underline hover:underline-offset-4",
+                    location.pathname === '/resume/latex' ? 'text-primary' : 'text-gray-700'
+                  )}
+                >
+                  <div className="flex items-center space-x-2">
+                    <FileText size={18} />
+                    <span>LaTeX Resume</span>
+                  </div>
+                </Link>
+
+                <Link
                   to="/profile"
                   className={cn(
                     "font-medium transition-all duration-200",
@@ -140,6 +154,20 @@ const Header: React.FC = () => {
                 {isAuthenticated ? (
                   <>
                     <Link
+                      to="/resume/latex"
+                      className={cn(
+                        "text-lg font-medium py-2 transition-colors",
+                        "hover:text-primary",
+                        location.pathname === '/resume/latex' && "text-primary"
+                      )}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <FileText size={18} />
+                        <span>LaTeX Resume</span>
+                      </div>
+                    </Link>
+
+                    <Link
                       to="/profile"
                       className={cn(
                         "text-lg font-medium py-2 transition-colors",
@@ -147,7 +175,10 @@ const Header: React.FC = () => {
                         location.pathname === '/profile' && "text-primary"
                       )}
                     >
-                      My Profile
+                      <div className="flex items-center space-x-2">
+                        <User size={18} />
+                        <span>My Profile</span>
+                      </div>
                     </Link>
                     
                     <Button

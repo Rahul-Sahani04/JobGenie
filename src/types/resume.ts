@@ -1,34 +1,66 @@
+export interface Profile {
+  network: string;
+  url: string;
+  username: string;
+}
+
 export interface Education {
-  id: string;
-  school: string;
+  id?: string;
+  institution: string;
   degree: string;
   field: string;
   startDate: string;
   endDate: string;
   gpa?: string;
-  description?: string;
+  courses?: string[];
+  achievements?: string[];
 }
 
-export interface Experience {
-  id: string;
+export interface WorkExperience {
+  id?: string;
   company: string;
   position: string;
   location: string;
   startDate: string;
   endDate: string;
   current: boolean;
+  summary?: string;
+  highlights?: string[];
+  technologies?: string[];
+}
+
+export interface Project {
+  id?: string;
+  name: string;
   description: string;
+  startDate: string;
+  endDate: string;
+  url?: string;
+  technologies: string[];
+  highlights: string[];
 }
 
 export interface Skill {
-  id: string;
-  name: string;
-  level: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
+  id?: string;
+  category: string;
+  items: string[];
 }
 
-export interface Resume {
-  id: string;
-  userId: string;
+export interface Certification {
+  id?: string;
+  name: string;
+  issuer: string;
+  date: string;
+  url?: string;
+}
+
+export interface Language {
+  id?: string;
+  name: string;
+  proficiency: string;
+}
+
+export interface ResumeContent {
   basics: {
     name: string;
     email: string;
@@ -36,13 +68,40 @@ export interface Resume {
     location: string;
     summary: string;
     website?: string;
-    linkedin?: string;
-    github?: string;
+    profiles: Profile[];
   };
   education: Education[];
-  experience: Experience[];
+  workExperience: WorkExperience[];
+  projects: Project[];
   skills: Skill[];
-  latexSource?: string;
+  certifications: Certification[];
+  languages: Language[];
+}
+
+export interface ResumeVersion {
+  versionNumber: number;
+  createdAt: string;
+  content: ResumeContent;
+  notes?: string;
+}
+
+export interface ResumeMetadata {
+  lastUpdated: string;
+  targetPosition?: string;
+  targetCompany?: string;
+  customTags?: string[];
+}
+
+export interface Resume {
+  _id: string;
+  id: string;
+  user: string;
+  title: string;
+  isDefault: boolean;
+  content: ResumeContent;
+  versions: ResumeVersion[];
+  metadata: ResumeMetadata;
+  createdAt: string;
   updatedAt: string;
 }
 

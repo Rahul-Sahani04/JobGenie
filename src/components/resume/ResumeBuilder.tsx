@@ -4,7 +4,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Separator } from '../ui/separator';
 import { Plus, Trash2, Download, FileText } from 'lucide-react';
-import { Resume, Education, Experience, Skill } from '@/types/resume';
+import { Resume, Education, WorkExperience, Skill } from '@/types/resume';
 import resumeService from '@/services/resume';
 import { useAuth } from '@/context/AuthContext';
 
@@ -20,6 +20,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onSave }) => {
 
   useEffect(() => {
     if (user) {
+      console.log('User found:', user);
       loadResume();
     }
   }, [user]);
@@ -27,7 +28,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onSave }) => {
   const loadResume = async () => {
     try {
       if (!user) return;
-      const data = await resumeService.getResume(user.id);
+      const data = await resumeService.getResume(user._id);
+      console.log('Resume loaded:', data);
       setResume(data);
     } catch (error) {
       console.error('Failed to load resume:', error);
@@ -36,141 +38,174 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onSave }) => {
     }
   };
 
-  const handleBasicInfoChange = (field: keyof Resume['basics'], value: string) => {
+  const handleBasicInfoChange = (field: keyof Resume['content']['basics'], value: string) => {
     if (!resume) return;
     setResume({
       ...resume,
-      basics: { ...resume.basics, [field]: value }
+      content: {
+        ...resume.content,
+        basics: { ...resume.content.basics, [field]: value }
+      }
     });
   };
 
   const addEducation = () => {
     if (!resume) return;
     const newEducation: Education = {
-      id: Date.now().toString(),
-      school: '',
+      institution: '',
       degree: '',
       field: '',
       startDate: '',
-      endDate: '',
+      endDate: ''
     };
     setResume({
       ...resume,
-      education: [...resume.education, newEducation]
+      content: {
+        ...resume.content,
+        education: [...resume.content.education, newEducation]
+      }
     });
   };
 
-  const updateEducation = async (id: string, field: keyof Education, value: string) => {
+  const updateEducation = (index: number, field: keyof Education, value: string) => {
     if (!resume) return;
-    const updatedEducation = resume.education.map(edu => 
-      edu.id === id ? { ...edu, [field]: value } : edu
-    );
+    const updatedEducation = [...resume.content.education];
+    updatedEducation[index] = {
+      ...updatedEducation[index],
+      [field]: value
+    };
     setResume({
       ...resume,
-      education: updatedEducation
+      content: {
+        ...resume.content,
+        education: updatedEducation
+      }
     });
-    try {
-      await resumeService.updateEducation(id, { [field]: value });
-    } catch (error) {
-      console.error('Failed to update education:', error);
-    }
   };
 
-  const removeEducation = async (id: string) => {
+  const removeEducation = (index: number) => {
     if (!resume) return;
-    try {
-      await resumeService.deleteEducation(id);
-      setResume({
-        ...resume,
-        education: resume.education.filter(edu => edu.id !== id)
-      });
-    } catch (error) {
-      console.error('Failed to delete education:', error);
-    }
+    setResume({
+      ...resume,
+      content: {
+        ...resume.content,
+        education: resume.content.education.filter((_, i) => i !== index)
+      }
+    });
   };
 
   const addExperience = () => {
     if (!resume) return;
-    const newExperience: Experience = {
-      id: Date.now().toString(),
+    const newExperience: WorkExperience = {
       company: '',
       position: '',
       location: '',
       startDate: '',
       endDate: '',
       current: false,
-      description: ''
+      summary: ''
     };
     setResume({
       ...resume,
-      experience: [...resume.experience, newExperience]
+      content: {
+        ...resume.content,
+        workExperience: [...resume.content.workExperience, newExperience]
+      }
     });
   };
 
-  const updateExperience = async (id: string, field: keyof Experience, value: string | boolean) => {
+  const updateExperience = (index: number, field: keyof WorkExperience, value: string | boolean) => {
     if (!resume) return;
-    const updatedExperience = resume.experience.map(exp => 
-      exp.id === id ? { ...exp, [field]: value } : exp
-    );
+    const updatedExperience = [...resume.content.workExperience];
+    updatedExperience[index] = {
+      ...updatedExperience[index],
+      [field]: value
+    };
     setResume({
       ...resume,
-      experience: updatedExperience
+      content: {
+        ...resume.content,
+        workExperience: updatedExperience
+      }
     });
-    try {
-      await resumeService.updateExperience(id, { [field]: value });
-    } catch (error) {
-      console.error('Failed to update experience:', error);
-    }
   };
 
-  const removeExperience = async (id: string) => {
+  const removeExperience = (index: number) => {
     if (!resume) return;
-    try {
-      await resumeService.deleteExperience(id);
-      setResume({
-        ...resume,
-        experience: resume.experience.filter(exp => exp.id !== id)
-      });
-    } catch (error) {
-      console.error('Failed to delete experience:', error);
-    }
+    setResume({
+      ...resume,
+      content: {
+        ...resume.content,
+        workExperience: resume.content.workExperience.filter((_, i) => i !== index)
+      }
+    });
   };
 
   const addSkill = () => {
     if (!resume) return;
     const newSkill: Skill = {
-      id: Date.now().toString(),
-      name: '',
-      level: 'Beginner'
+      category: '',
+      items: []
     };
     setResume({
       ...resume,
-      skills: [...resume.skills, newSkill]
+      content: {
+        ...resume.content,
+        skills: [...resume.content.skills, newSkill]
+      }
     });
   };
 
-  const updateSkill = (id: string, field: keyof Skill, value: string) => {
+  const updateSkill = (index: number, field: keyof Skill, value: string) => {
     if (!resume) return;
+    const updatedSkills = [...resume.content.skills];
+    if (field === 'category') {
+      updatedSkills[index] = {
+        ...updatedSkills[index],
+        category: value
+      };
+    }
     setResume({
       ...resume,
-      skills: resume.skills.map(skill => 
-        skill.id === id ? { ...skill, [field]: value } : skill
-      )
+      content: {
+        ...resume.content,
+        skills: updatedSkills
+      }
     });
   };
 
-  const removeSkill = (id: string) => {
+  const updateSkillItems = (skillIndex: number, items: string) => {
+    if (!resume) return;
+    const updatedSkills = [...resume.content.skills];
+    updatedSkills[skillIndex] = {
+      ...updatedSkills[skillIndex],
+      items: items.split(',').map(item => item.trim())
+    };
+    setResume({
+      ...resume,
+      content: {
+        ...resume.content,
+        skills: updatedSkills
+      }
+    });
+  };
+
+  const removeSkill = (index: number) => {
     if (!resume) return;
     setResume({
       ...resume,
-      skills: resume.skills.filter(skill => skill.id !== id)
+      content: {
+        ...resume.content,
+        skills: resume.content.skills.filter((_, i) => i !== index)
+      }
     });
   };
 
   const handleSave = async () => {
-    if (!resume || !user) return;
+    if (!resume) return;
     try {
-      await resumeService.updateResume(resume.id, resume);
+      console.log(resume._id);
+      await resumeService.updateResume(resume._id, resume);
       if (onSave) onSave();
     } catch (error) {
       console.error('Failed to save resume:', error);
@@ -181,7 +216,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onSave }) => {
     if (!resume) return;
     try {
       setGenerating(true);
-      const { latexSource, pdfUrl } = await resumeService.generateLatexResume(resume.id);
+      console.log('Generating LaTeX resume for ID:', resume);
+      const { latexSource, pdfUrl } = await resumeService.generateLatexResume(resume._id);
+      console.log('LaTeX source:', latexSource);
+      console.log('PDF URL:', pdfUrl);
       window.open(pdfUrl, '_blank');
     } catch (error) {
       console.error('Failed to generate LaTeX resume:', error);
@@ -206,29 +244,29 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onSave }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input 
             placeholder="Full Name"
-            value={resume.basics.name}
+            value={resume.content.basics.name}
             onChange={(e) => handleBasicInfoChange('name', e.target.value)}
           />
           <Input 
             placeholder="Email"
             type="email"
-            value={resume.basics.email}
+            value={resume.content.basics.email}
             onChange={(e) => handleBasicInfoChange('email', e.target.value)}
           />
           <Input 
             placeholder="Phone"
-            value={resume.basics.phone}
+            value={resume.content.basics.phone}
             onChange={(e) => handleBasicInfoChange('phone', e.target.value)}
           />
           <Input 
             placeholder="Location"
-            value={resume.basics.location}
+            value={resume.content.basics.location}
             onChange={(e) => handleBasicInfoChange('location', e.target.value)}
           />
           <div className="col-span-2">
             <Input 
               placeholder="Professional Summary"
-              value={resume.basics.summary}
+              value={resume.content.basics.summary}
               onChange={(e) => handleBasicInfoChange('summary', e.target.value)}
             />
           </div>
@@ -245,47 +283,47 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onSave }) => {
           </Button>
         </div>
         <div className="space-y-4">
-          {resume.education.map((edu) => (
-            <div key={edu.id} className="p-4 border rounded-md">
+          {resume.content.education.map((edu, index) => (
+            <div key={index} className="p-4 border rounded-md">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input 
-                  placeholder="School"
-                  value={edu.school}
-                  onChange={(e) => updateEducation(edu.id, 'school', e.target.value)}
+                  placeholder="Institution"
+                  value={edu.institution}
+                  onChange={(e) => updateEducation(index, 'institution', e.target.value)}
                 />
                 <Input 
                   placeholder="Degree"
                   value={edu.degree}
-                  onChange={(e) => updateEducation(edu.id, 'degree', e.target.value)}
+                  onChange={(e) => updateEducation(index, 'degree', e.target.value)}
                 />
                 <Input 
                   placeholder="Field of Study"
                   value={edu.field}
-                  onChange={(e) => updateEducation(edu.id, 'field', e.target.value)}
+                  onChange={(e) => updateEducation(index, 'field', e.target.value)}
                 />
                 <Input 
                   placeholder="GPA"
                   value={edu.gpa || ''}
-                  onChange={(e) => updateEducation(edu.id, 'gpa', e.target.value)}
+                  onChange={(e) => updateEducation(index, 'gpa', e.target.value)}
                 />
                 <Input 
                   type="date"
                   placeholder="Start Date"
                   value={edu.startDate}
-                  onChange={(e) => updateEducation(edu.id, 'startDate', e.target.value)}
+                  onChange={(e) => updateEducation(index, 'startDate', e.target.value)}
                 />
                 <Input 
                   type="date"
                   placeholder="End Date"
                   value={edu.endDate}
-                  onChange={(e) => updateEducation(edu.id, 'endDate', e.target.value)}
+                  onChange={(e) => updateEducation(index, 'endDate', e.target.value)}
                 />
               </div>
               <Button 
                 variant="destructive" 
                 size="sm" 
                 className="mt-4"
-                onClick={() => removeEducation(edu.id)}
+                onClick={() => removeEducation(index)}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Remove
@@ -305,42 +343,42 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onSave }) => {
           </Button>
         </div>
         <div className="space-y-4">
-          {resume.experience.map((exp) => (
-            <div key={exp.id} className="p-4 border rounded-md">
+          {resume.content.workExperience.map((exp, index) => (
+            <div key={index} className="p-4 border rounded-md">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input 
                   placeholder="Company"
                   value={exp.company}
-                  onChange={(e) => updateExperience(exp.id, 'company', e.target.value)}
+                  onChange={(e) => updateExperience(index, 'company', e.target.value)}
                 />
                 <Input 
                   placeholder="Position"
                   value={exp.position}
-                  onChange={(e) => updateExperience(exp.id, 'position', e.target.value)}
+                  onChange={(e) => updateExperience(index, 'position', e.target.value)}
                 />
                 <Input 
                   placeholder="Location"
                   value={exp.location}
-                  onChange={(e) => updateExperience(exp.id, 'location', e.target.value)}
+                  onChange={(e) => updateExperience(index, 'location', e.target.value)}
                 />
                 <div className="col-span-2">
                   <Input 
-                    placeholder="Description"
-                    value={exp.description}
-                    onChange={(e) => updateExperience(exp.id, 'description', e.target.value)}
+                    placeholder="Summary"
+                    value={exp.summary || ''}
+                    onChange={(e) => updateExperience(index, 'summary', e.target.value)}
                   />
                 </div>
                 <Input 
                   type="date"
                   placeholder="Start Date"
                   value={exp.startDate}
-                  onChange={(e) => updateExperience(exp.id, 'startDate', e.target.value)}
+                  onChange={(e) => updateExperience(index, 'startDate', e.target.value)}
                 />
                 <Input 
                   type="date"
                   placeholder="End Date"
                   value={exp.endDate}
-                  onChange={(e) => updateExperience(exp.id, 'endDate', e.target.value)}
+                  onChange={(e) => updateExperience(index, 'endDate', e.target.value)}
                   disabled={exp.current}
                 />
               </div>
@@ -348,7 +386,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onSave }) => {
                 variant="destructive" 
                 size="sm" 
                 className="mt-4"
-                onClick={() => removeExperience(exp.id)}
+                onClick={() => removeExperience(index)}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Remove
@@ -364,34 +402,31 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onSave }) => {
           <h3 className="text-lg font-semibold">Skills</h3>
           <Button onClick={addSkill} size="sm">
             <Plus className="h-4 w-4 mr-2" />
-            Add Skill
+            Add Skill Category
           </Button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {resume.skills.map((skill) => (
-            <div key={skill.id} className="flex items-center gap-2">
+        <div className="space-y-4">
+          {resume.content.skills.map((skill, index) => (
+            <div key={index} className="grid grid-cols-1 gap-2 border rounded-md p-4">
+              <div className="flex items-center gap-2">
+                <Input 
+                  placeholder="Category (e.g., Programming Languages)"
+                  value={skill.category}
+                  onChange={(e) => updateSkill(index, 'category', e.target.value)}
+                />
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  onClick={() => removeSkill(index)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
               <Input 
-                placeholder="Skill"
-                value={skill.name}
-                onChange={(e) => updateSkill(skill.id, 'name', e.target.value)}
+                placeholder="Skills (comma separated, e.g., JavaScript, Python, Java)"
+                value={skill.items.join(', ')}
+                onChange={(e) => updateSkillItems(index, e.target.value)}
               />
-              <select
-                value={skill.level}
-                onChange={(e) => updateSkill(skill.id, 'level', e.target.value)}
-                className="rounded-md border border-gray-300 px-3 py-2"
-              >
-                <option value="Beginner">Beginner</option>
-                <option value="Intermediate">Intermediate</option>
-                <option value="Advanced">Advanced</option>
-                <option value="Expert">Expert</option>
-              </select>
-              <Button 
-                variant="destructive" 
-                size="sm"
-                onClick={() => removeSkill(skill.id)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
             </div>
           ))}
         </div>

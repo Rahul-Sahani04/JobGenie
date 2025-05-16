@@ -20,7 +20,7 @@ interface ProfileCompletionData {
   missingFields: string[];
 }
 
-type TabType = 'overview' | 'resume' | 'applications' | 'preferences';
+type TabType = 'overview' | 'resume' | 'preferences';
 
 const ProfilePage = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -76,7 +76,6 @@ const ProfilePage = () => {
   const tabs: Array<{ id: TabType; label: string }> = [
     { id: 'overview', label: 'Overview' },
     { id: 'resume', label: 'Resume' },
-    { id: 'applications', label: 'Applications' },
     { id: 'preferences', label: 'Preferences' },
   ];
 
@@ -128,10 +127,6 @@ const ProfilePage = () => {
                       <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Stats</h2>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="bg-gray-50 p-4 rounded-md">
-                          <p className="text-gray-600 text-sm">Applications</p>
-                          <p className="text-2xl font-bold text-gray-900">{applications.length}</p>
-                        </div>
-                        <div className="bg-gray-50 p-4 rounded-md">
                           <p className="text-gray-600 text-sm">Profile Views</p>
                           <p className="text-2xl font-bold text-gray-900">12</p>
                         </div>
@@ -141,40 +136,11 @@ const ProfilePage = () => {
                         </div>
                       </div>
                     </Card>
-
-                    <Card className="p-6">
-                      <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Applications</h2>
-                      <ApplicationTracker 
-                        applications={applications.slice(0, 3)}
-                        isLoading={loadingApplications}
-                      />
-                      {applications.length > 3 && (
-                        <Button
-                          variant="outline"
-                          className="mt-4"
-                          onClick={() => setActiveTab('applications')}
-                        >
-                          View All Applications
-                        </Button>
-                      )}
-                    </Card>
                   </div>
                 )}
 
                 {activeTab === 'resume' && (
                   <ResumeBuilder onSave={loadProfileCompletion} />
-                )}
-
-                {activeTab === 'applications' && (
-                  <div className="space-y-6">
-                    <Card className="p-6">
-                      <h2 className="text-xl font-semibold text-gray-900 mb-4">Job Applications</h2>
-                      <ApplicationTracker 
-                        applications={applications}
-                        isLoading={loadingApplications}
-                      />
-                    </Card>
-                  </div>
                 )}
 
                 {activeTab === 'preferences' && (

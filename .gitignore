@@ -44,3 +44,5 @@ Thumbs.db
 # TypeScript
 *.tsbuildinfo
 v0dev-prompt.md
+src/services/resume.ts
+BuildLatexResumeTemplate.md

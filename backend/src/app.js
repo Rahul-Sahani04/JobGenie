@@ -2,10 +2,12 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const path = require('path');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth.routes');
 const jobRoutes = require('./routes/job.routes');
 const jobApplicationRoutes = require('./routes/jobApplication.routes');
+const resumeRoutes = require('./routes/resume.routes');
 
 // Initialize express app
 const app = express();
@@ -22,6 +24,9 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(morgan('dev'));
+
+// Serve static files from the public directory
+app.use('/resumes', express.static(path.join(__dirname, '../public/resumes')));
 
 // Security middleware
 app.use((req, res, next) => {
@@ -48,6 +53,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/applications', jobApplicationRoutes);
+app.use('/api/resumes', resumeRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
