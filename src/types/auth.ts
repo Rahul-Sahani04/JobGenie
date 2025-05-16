@@ -28,6 +28,8 @@ export interface UserProfile {
     github?: string;
     portfolio?: string;
   };
+
+  savedJobs?: string[];
 }
 
 export interface UserPreferences {

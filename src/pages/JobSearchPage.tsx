@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Filter } from 'lucide-react';
+// import { Filter } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import SearchBar from '../components/common/SearchBar';
 import JobList from '../components/jobs/JobList';
-import JobFilters from '../components/jobs/JobFilters';
+// import JobFilters from '../components/jobs/JobFilters';
 import { saveJob, unsaveJob } from '../services/jobs';
-import Button from '../components/common/Button';
+// import Button from '../components/common/Button';
 import { useJobSearch } from '../hooks/useJobs';
-import { JobType, ExperienceLevel } from '../types/job';
+// import { JobType, ExperienceLevel } from '../types/job';
 import { useAuth } from '../context/AuthContext';
 import { getSavedJobs } from '../services/jobs';
+import { getUserProfile } from '../services/auth';
+import { useMemo } from 'react';
 
 const JobSearchPage: React.FC = () => {
   const location = useLocation();
@@ -23,47 +25,28 @@ const JobSearchPage: React.FC = () => {
   const locationParam = searchParams.get('location') || '';
 
   // State for managing job search
-  const [savedJobs, setSavedJobs] = useState<string[]>(user?.savedJobs || []);
-  const [loadingSavedJobs, setLoadingSavedJobs] = useState(true);
+  const [savedJobIds, setSavedJobIds] = useState<string[]>(user?.savedJobs || []);
 
-  // Fetch saved jobs on component mount
+  // Initialize saved jobs from user data and update when user changes
   React.useEffect(() => {
-    const fetchSavedJobs = async () => {
-      try {
-        const jobs = await getSavedJobs();
-        setSavedJobs(jobs.map(job => job._id));
-      } catch (error) {
-        console.error('Error fetching saved jobs:', error);
-      } finally {
-        setLoadingSavedJobs(false);
-      }
-    };
-
-    fetchSavedJobs();
-  }, [user]);
+    
+    if (user) { 
+      
+    }
+  }, [user]);  // Depend on entire user object
   
-  // State for filters drawer on mobile
-  const [showFilters, setShowFilters] = useState(false);
   
   // Initialize job search hook with initial URL params
-  const { jobs, totalJobs, currentPage, isLoading, error, updateSearch, nextPage, prevPage, setJobs } = useJobSearch(
-    {
-      query: queryParam,
-      location: locationParam
-    },
-    user?.savedJobs || []
-  );
-  
-  // Filter states
-  const [activeFilters, setActiveFilters] = useState<{
-    jobTypes: JobType[];
-    experienceLevels: ExperienceLevel[];
-    remote: boolean;
-  }>({
-    jobTypes: [],
-    experienceLevels: [],
-    remote: false
-  });
+const initialParams = useMemo(() => ({
+  query: queryParam,
+  location: locationParam
+}), [queryParam, locationParam]);
+
+const { jobs, totalJobs, currentPage, isLoading, error, updateSearch, nextPage, prevPage, setJobs } = useJobSearch(
+  initialParams,
+  savedJobIds
+);
+
   
   // Update URL and trigger search
   const updateUrlAndSearch = (params: Record<string, string | undefined>) => {
@@ -85,9 +68,6 @@ const JobSearchPage: React.FC = () => {
     updateSearch({
       query,
       location: locationParam,
-      jobType: activeFilters.jobTypes[0],
-      experienceLevel: activeFilters.experienceLevels[0],
-      remote: activeFilters.remote
     });
   };
   
@@ -98,9 +78,7 @@ const JobSearchPage: React.FC = () => {
     updateSearch({
       query: queryParam,
       location: locationValue,
-      jobType: activeFilters.jobTypes[0],
-      experienceLevel: activeFilters.experienceLevels[0],
-      remote: activeFilters.remote
+
     });
   };
   
@@ -114,32 +92,46 @@ const JobSearchPage: React.FC = () => {
 
     try {
       const job = jobs.find(j => j._id === jobId);
-      console.log('Job to ' + (job?.isSaved ? 'unsave' : 'save') + ':', job);
       if (!job) return;
 
-      const isSaved = job.isSaved || user.savedJobs?.includes(jobId);
+      const savedJobIds = user?.savedJobs.map(saved  => saved._id) || [];
+      console.log('Job ID:', jobId);
+      console.log('Saved job IDs:', savedJobIds);
+      const isSaved = savedJobIds.includes(jobId);
+      console.log('Job found:', job);
+      console.log(isSaved ? 'Job is already saved' : 'Job is not saved', {
+        jobId,
+        currentIsSaved: isSaved,
+        jobIsSaved: job.isSaved,
+        inSavedJobIds: savedJobIds.includes(jobId)
+      });
       
       if (isSaved) {
         await unsaveJob(jobId);
-        if (user.savedJobs) {
-          user.savedJobs = user.savedJobs.filter(_id => _id !== jobId);
-        }
+        setSavedJobIds(prev => prev.filter(id => id !== jobId));
       } else {
         await saveJob(jobId);
-        if (user.savedJobs) {
-          user.savedJobs.push(jobId);
-        } else {
-          user.savedJobs = [jobId];
-        }
+        setSavedJobIds(prev => [...prev, jobId]);
       }
 
-      // Update the isSaved state in the jobs list
+      // Update the jobs list immediately
+      console.log('Updating jobs list with new saved state');
       setJobs(jobs.map(j => {
         if (j._id === jobId) {
-          return { ...j, isSaved: !isSaved };
+          const newState = !isSaved;
+          console.log(`Updating job ${j._id} saved state to:`, newState);
+          return { ...j, isSaved: newState };
         }
         return j;
       }));
+
+      // Refresh user profile to get updated savedJobs
+      console.log('Fetching updated user profile');
+      const updatedUser = await getUserProfile();
+      if (updatedUser?.savedJobs) {
+        console.log('Updating savedJobIds from user profile:', updatedUser.savedJobs);
+        setSavedJobIds(updatedUser.savedJobs);
+      }
     } catch (error) {
       console.error('Error saving/unsaving job:', error);
     }
@@ -195,7 +187,7 @@ const JobSearchPage: React.FC = () => {
                 jobs={jobs}
                 isLoading={isLoading}
                 error={error}
-                savedJobs={savedJobs || []}
+                savedJobs={savedJobIds}
                 onSaveJob={handleSaveJob}
               />
               

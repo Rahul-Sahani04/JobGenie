@@ -79,7 +79,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, saved = false, onSave }) => {
                 size="icon"
                 variant="ghost"
                 className={cn(
-                  "rounded-full transition-all duration-200",
+                  "rounded-full transition-all duration-200 mt-10 scale-125",
                   saved
                     ? "text-red-500 hover:text-red-600 hover:bg-red-50"
                     : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
@@ -91,10 +91,10 @@ const JobCard: React.FC<JobCardProps> = ({ job, saved = false, onSave }) => {
                 aria-label={saved ? "Unsave job" : "Save job"}
               >
                 <Heart
-                  size={20}
+                  size={45}
                   className={cn(
-                    "transition-transform duration-200",
-                    "group-hover:scale-110",
+                    "transition-transform duration-200 ",
+                    "group-hover:scale-150",
                     saved && "fill-current"
                   )}
                 />
@@ -102,7 +102,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, saved = false, onSave }) => {
             )}
             {/* Source logo */}
             {job.source === "Naukri" && (
-              <div className="absolute top-4 right-4">
+              <div className="absolute right-4 ">
                 <img 
                   src="https://static.naukimg.com/s/0/0/i/naukri-identity/naukri_gnb_logo.svg"
                   alt="Naukri Logo"

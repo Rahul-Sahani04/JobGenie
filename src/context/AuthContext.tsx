@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, AuthState } from '../types/auth';
 import * as authService from '../services/auth';
+import { getSavedJobs } from '@/services/jobs';
 
 interface AuthContextProps extends AuthState {
   login: (email: string, password: string) => Promise<void>;
@@ -12,6 +13,8 @@ interface AuthContextProps extends AuthState {
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+
+  const [user, setUser] = useState<User | null>(null);
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
     isAuthenticated: false,
@@ -20,34 +23,40 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   });
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (token) {
-          const user = await authService.getUserProfile();
-          setAuthState({
-            user,
-            isAuthenticated: true,
-            isLoading: false,
-            error: null
-          });
-        } else {
-          setAuthState(prev => ({ ...prev, isLoading: false }));
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
-        localStorage.removeItem('token');
-        setAuthState({
-          user: null,
-          isAuthenticated: false,
-          isLoading: false,
-          error: 'Session expired. Please login again.'
-        });
-      }
-    };
+  const checkAuth = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        const user = await authService.getUserProfile();
+        const savedJobs = await getSavedJobs();
 
-    checkAuth();
-  }, []);
+        const updatedUser = { ...user, savedJobs };
+
+        setUser(updatedUser);
+        setAuthState({
+          user: updatedUser,
+          isAuthenticated: true,
+          isLoading: false,
+          error: null
+        });
+      } else {
+        setAuthState(prev => ({ ...prev, isLoading: false }));
+      }
+    } catch (error) {
+      console.error('Auth check error:', error);
+      localStorage.removeItem('token');
+      setAuthState({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: 'Session expired. Please login again.'
+      });
+    }
+  };
+
+  checkAuth();
+}, []);
+
 
   const login = async (email: string, password: string) => {
     try {
@@ -146,6 +155,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     </AuthContext.Provider>
   );
 };
+
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

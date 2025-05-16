@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getJobs, getJobById, getSavedJobs } from '../services/jobs';
 import { Job, JobSearchParams, JobsResponse } from '../types/job';
 
+
 export const useJobSearch = (initialParams: JobSearchParams = {}, savedJobIds: string[] = []) => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [totalJobs, setTotalJobs] = useState(0);
@@ -23,12 +24,17 @@ export const useJobSearch = (initialParams: JobSearchParams = {}, savedJobIds: s
       };
 
       const response = await getJobs(finalParams);
-      const updatedJobs = response.jobs.map(job => ({
-        ...job,
-        isSaved: savedJobIds.includes(job._id)
-      }));
-
-      setJobs(updatedJobs);
+      
+      // First update with basic job data
+      const jobsWithSaved = response.jobs.map(job => {
+        const isSaved = savedJobIds.includes(job._id);
+        return {
+          ...job,
+          isSaved
+        };
+      });
+      
+      setJobs(jobsWithSaved);
       setTotalJobs(response.total);
       setCurrentPage(finalParams.page);
     } catch (err) {
@@ -42,15 +48,10 @@ export const useJobSearch = (initialParams: JobSearchParams = {}, savedJobIds: s
   // Initial fetch
   useEffect(() => {
     fetchAndUpdateJobs(initialParams);
-  }, []); // Only run once on mount
+  }, [initialParams, savedJobIds, fetchAndUpdateJobs]); // Re-fetch when savedJobIds changes
 
-  // Update saved states when savedJobIds changes
-  useEffect(() => {
-    setJobs(currentJobs => currentJobs.map(job => ({
-      ...job,
-      isSaved: savedJobIds.includes(job._id)
-    })));
-  }, [savedJobIds]);
+
+
 
   const updateSearch = useCallback((newParams: Partial<JobSearchParams>) => {
     const searchParams = {
@@ -110,7 +111,7 @@ export const useJobDetails = (jobId?: string) => {
     if (jobId) {
       fetchJob(jobId);
     }
-  }, []);
+  }, [jobId]);
 
   return { job, isLoading, error, fetchJob };
 };

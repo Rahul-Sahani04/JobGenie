@@ -1,11 +1,12 @@
-import React from 'react';
-import { AlertCircle, FileSearch } from 'lucide-react';
-import { Card, CardContent } from '../ui/card';
-import { Skeleton } from '../ui/skeleton';
+import React from "react";
+import { AlertCircle, FileSearch } from "lucide-react";
+import { Card, CardContent } from "../ui/card";
+import { Skeleton } from "../ui/skeleton";
 import { Alert, AlertTitle, AlertDescription } from "../ui/alert";
-import JobCard from './JobCard';
-import { Job } from '../../types/job';
-import { cn } from '@/lib/utils';
+import JobCard from "./JobCard";
+import { Job } from "../../types/job";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
 
 interface JobListProps {
   jobs: Job[];
@@ -22,15 +23,19 @@ const JobList: React.FC<JobListProps> = ({
   error,
   savedJobs = [],
   onSaveJob,
-  emptyMessage = 'No jobs found. Try adjusting your search criteria.',
+  emptyMessage = "No jobs found. Try adjusting your search criteria.",
 }) => {
-
+  const { user } = useAuth();
 
   if (isLoading) {
     return (
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
-          <Card key={i} className="animate-in fade-in-50 duration-500" style={{ animationDelay: `${i * 100}ms` }}>
+          <Card
+            key={i}
+            className="animate-in fade-in-50 duration-500"
+            style={{ animationDelay: `${i * 100}ms` }}
+          >
             <CardContent className="p-6">
               <div className="space-y-4">
                 <div className="space-y-2">
@@ -77,21 +82,26 @@ const JobList: React.FC<JobListProps> = ({
 
   return (
     <div className="space-y-4">
-      {jobs.map((job, index) => (
-        <div
-          key={job._id}
-          className={cn(
-            "animate-in fade-in-50 duration-500 slide-in-from-bottom-4",
-          )}
-          style={{ animationDelay: `${index * 100}ms` }}
-        >
-          <JobCard
-            job={job}
-            saved={savedJobs.includes(job._id)}
-            onSave={onSaveJob ? () => onSaveJob(job._id) : undefined}
-          />
-        </div>
-      ))}
+      {jobs.map((job, index) => {
+        const savedJobIds = user?.savedJobs.map(saved  => saved._id) || [];
+        const isSaved = savedJobIds.includes(job._id);
+
+        return (
+          <div
+            key={job._id}
+            className={cn(
+              "animate-in fade-in-50 duration-500 slide-in-from-bottom-4"
+            )}
+            style={{ animationDelay: `${index * 100}ms` }}
+          >
+            <JobCard
+              job={job}
+              saved={isSaved}
+              onSave={onSaveJob ? () => onSaveJob(job._id) : undefined}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 };

@@ -59,7 +59,7 @@ export const getUserProfile = async (): Promise<User> => {
 
 export const updateUserProfile = async (userData: Partial<User>): Promise<User> => {
   try {
-    const response = await api.put('/auth/user/profile', userData);
+    const response = await api.put('/auth/profile', userData);
     return response.data;
   } catch (error) {
     console.error('Error updating user profile:', error);
@@ -99,6 +99,7 @@ interface SavedJobsResponse {
 export const getSavedJobs = async (): Promise<SavedJobsResponse[]> => {
   try {
     const response = await api.get('/user/saved-jobs');
+    
     return response.data;
   } catch (error) {
     console.error('Error fetching saved jobs:', error);
